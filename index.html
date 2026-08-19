@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Словарный диктант · 汉语听写</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<style>
+:root{
+  --paper:#F6F0DF; --card:#FFFCF2; --ink:#262019; --ink2:#6B6152;
+  --red:#C63A21; --red-d:#93250F; --gold:#E3A62E; --jade:#2E7D5B; --jade-l:#E2F0E7;
+  --line:#DACDA9; --shadow:5px 5px 0 rgba(38,32,25,.9);
+  --disp:'ZCOOL KuaiLe','Rubik','Noto Sans SC',sans-serif;
+  --body:'Rubik','Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+  --cjk:'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  font-family:var(--body); color:var(--ink); background:var(--paper);
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 47px, rgba(198,58,33,.05) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(198,58,33,.05) 47px 48px);
+  min-height:100vh; overflow-x:hidden;
+}
+::selection{background:var(--gold); color:var(--ink)}
+
+.amb{position:fixed; z-index:0; font-family:var(--cjk); font-weight:900; color:rgba(198,58,33,.07);
+  pointer-events:none; user-select:none; line-height:1; animation:floaty ease-in-out infinite alternate}
+@keyframes floaty{from{transform:translateY(-14px) rotate(-4deg)}to{transform:translateY(16px) rotate(5deg)}}
+
+.wrap{position:relative; z-index:1; max-width:1060px; margin:0 auto; padding:0 20px}
+
+.masthead{display:flex; align-items:center; gap:22px; padding:30px 0 20px; flex-wrap:wrap}
+.seal{
+  width:92px; height:92px; background:var(--red); color:#FFF6E6; flex:none;
+  display:grid; place-items:center; font-family:var(--cjk); font-weight:900; font-size:50px;
+  border-radius:12px; transform:rotate(-4deg);
+  box-shadow:inset 0 0 0 3px #FFF3DF, inset 0 0 0 7px var(--red), 5px 6px 0 rgba(38,32,25,.85);
+  position:relative; transition:transform .3s;
+}
+.seal:hover{transform:rotate(3deg) scale(1.05)}
+.seal small{position:absolute; bottom:5px; right:8px; font-size:9px; letter-spacing:1px; opacity:.9}
+.head-t{flex:1; min-width:240px}
+.kicker{font-size:12px; font-weight:800; letter-spacing:.22em; text-transform:uppercase; color:var(--red); margin-bottom:4px}
+.head-t h1{font-family:var(--disp); font-weight:400; font-size:clamp(30px,4.6vw,50px); line-height:1.02; letter-spacing:.5px}
+.head-t h1 em{font-style:normal; color:var(--red)}
+.head-sub{margin-top:6px; color:var(--ink2); font-size:14.5px; font-weight:500}
+.chips{display:flex; flex-direction:column; gap:8px; align-items:flex-end}
+.chip{background:var(--card); border:2px solid var(--ink); border-radius:8px; padding:7px 12px;
+  font-size:13px; font-weight:700; box-shadow:3px 3px 0 rgba(38,32,25,.85); white-space:nowrap}
+.chip b{color:var(--red)}
+.chip .edit{cursor:pointer; opacity:.55; margin-left:4px}
+.chip .edit:hover{opacity:1}
+.countdown{background:var(--gold)}
+.countdown.today{background:var(--red); color:#FFF6E6}
+.countdown.today b{color:#FFF6E6}
+
+.ticker{background:var(--red); color:#FBEFDB; overflow:hidden; border-block:3px solid var(--ink);
+  margin:6px 0 30px; transform:rotate(-.4deg) scale(1.01)}
+.ticker-track{display:flex; width:max-content; animation:tick 70s linear infinite}
+.ticker:hover .ticker-track{animation-play-state:paused}
+.ticker span{padding:9px 0; font-family:var(--cjk); font-weight:700; font-size:17px; letter-spacing:1px; white-space:nowrap}
+.ticker i{font-style:normal; color:var(--gold); padding:0 14px}
+@keyframes tick{to{transform:translateX(-50%)}}
+
+.menu-title{font-family:var(--disp); font-size:26px; margin-bottom:14px}
+.menu-title span{color:var(--red); font-size:20px; margin-left:8px}
+.lessons{display:flex; flex-direction:column; gap:14px}
+.lesson{
+  display:flex; align-items:center; gap:18px; background:var(--card);
+  border:2.5px solid var(--ink); border-radius:12px; padding:16px 20px; cursor:pointer;
+  box-shadow:var(--shadow); transition:transform .18s, box-shadow .18s; text-align:left; width:100%;
+  font-family:var(--body); color:var(--ink);
+}
+.lesson:hover{transform:translate(-3px,-3px); box-shadow:8px 8px 0 rgba(38,32,25,.9)}
+.lesson:hover .l-arrow{transform:translateX(6px); color:var(--red)}
+.lesson:active{transform:translate(2px,2px); box-shadow:1px 1px 0 rgba(38,32,25,.9)}
+.l-num{font-family:var(--cjk); font-weight:900; font-size:42px; color:var(--red); width:60px; flex:none; text-align:center;
+  border-right:2px dashed var(--line); padding-right:14px; line-height:1}
+.l-body{flex:1}
+.l-body h3{font-family:var(--disp); font-weight:400; font-size:22px; margin-bottom:2px}
+.l-body p{font-size:13.5px; color:var(--ink2); font-weight:500}
+.l-rec{font-size:12px; font-weight:700; color:var(--jade); margin-top:4px}
+.l-arrow{font-size:26px; transition:transform .18s; flex:none}
+.tools{display:flex; gap:12px; flex-wrap:wrap; margin-top:26px; align-items:center}
+
+.btn{font-family:var(--body); font-weight:800; font-size:14px; letter-spacing:.04em;
+  border:2.5px solid var(--ink); border-radius:9px; padding:11px 20px; cursor:pointer;
+  background:var(--card); color:var(--ink); box-shadow:3px 3px 0 rgba(38,32,25,.9);
+  transition:transform .12s, box-shadow .12s; display:inline-flex; align-items:center; gap:8px}
+.btn:hover{transform:translate(-2px,-2px); box-shadow:5px 5px 0 rgba(38,32,25,.9)}
+.btn:active{transform:translate(2px,2px); box-shadow:0 0 0 rgba(0,0,0,0)}
+.btn.primary{background:var(--red); color:#FFF6E6}
+.btn.jade{background:var(--jade); color:#F2FAF4}
+.btn.gold{background:var(--gold)}
+.btn.small{padding:7px 13px; font-size:12.5px; box-shadow:2px 2px 0 rgba(38,32,25,.9)}
+.btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+
+.topbar{display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap}
+.topbar h2{font-family:var(--disp); font-weight:400; font-size:clamp(24px,3.4vw,34px)}
+.topbar h2 i{font-style:normal; color:var(--red); margin-right:8px; font-family:var(--cjk); font-weight:900}
+.topbar .spacer{flex:1}
+.hud{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:18px}
+.hud .pill{background:var(--card); border:2px solid var(--ink); border-radius:999px; padding:6px 14px;
+  font-size:13px; font-weight:700; box-shadow:2px 2px 0 rgba(38,32,25,.85)}
+.hud .pill b{color:var(--red)}
+.panel{background:var(--card); border:2.5px solid var(--ink); border-radius:14px; padding:26px;
+  box-shadow:var(--shadow); position:relative}
+
+/* ---------- клетки 田字格 ---------- */
+.tzg{position:relative; background:#fff; border:2.5px solid var(--red); border-radius:6px;
+  display:grid; place-items:center; flex:none;
+  font-family:var(--cjk); font-weight:700; color:var(--ink)}
+.tzg::before,.tzg::after{content:''; position:absolute; pointer-events:none}
+.tzg::before{left:0; right:0; top:50%; border-top:2px dashed rgba(198,58,33,.4)}
+.tzg::after{top:0; bottom:0; left:50%; border-left:2px dashed rgba(198,58,33,.4)}
+.cells{display:flex; gap:12px; flex-wrap:wrap; justify-content:center}
+.cells .tzg span{position:relative; z-index:2; animation:popChar .4s cubic-bezier(.2,1.6,.4,1) both}
+@keyframes popChar{from{transform:scale(.2) rotate(-14deg); opacity:0}}
+
+.dcell{overflow:hidden}
+.hw{position:absolute; inset:0; z-index:2}
+.hw canvas,.hw svg{display:block; touch-action:none}
+.mark{position:absolute; top:3px; right:8px; z-index:3; font-weight:900; color:var(--jade); font-size:20px; pointer-events:none}
+
+/* ---------- пары ---------- */
+.match-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px 22px}
+.mcard{border:2.5px solid var(--ink); border-radius:10px; background:#fff; cursor:pointer;
+  box-shadow:3px 3px 0 rgba(38,32,25,.85); transition:transform .12s, background .15s, opacity .3s;
+  padding:14px 10px; text-align:center; font-family:var(--body)}
+.mcard:hover{transform:translateY(-3px)}
+.mcard.hz{font-family:var(--cjk); font-weight:700; font-size:34px; background:#FFF9EC; letter-spacing:2px}
+.mcard.py{font-weight:800; font-size:18px; letter-spacing:.3px}
+.mcard.ru{font-weight:600; font-size:14px; line-height:1.35}
+.mcard.sel{background:var(--red); color:#FFF6E6; transform:translateY(-3px)}
+.mcard.ok{background:var(--jade); border-color:var(--jade); color:#F2FAF4; cursor:default;
+  animation:okpop .35s cubic-bezier(.2,1.7,.4,1); opacity:.92}
+.mcard.bad{animation:shake .4s}
+@keyframes okpop{50%{transform:scale(1.08)}}
+@keyframes shake{20%{transform:translateX(-7px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+
+/* ---------- диктант ---------- */
+.dict-prompt{text-align:center; margin-bottom:20px}
+.dict-pinyin{font-weight:900; font-size:clamp(30px,4.5vw,44px); letter-spacing:.5px}
+.dict-ru{color:var(--ink2); font-weight:600; margin-top:4px; font-size:16px}
+.hiddenru{color:transparent; user-select:none}
+.say-btn{width:64px; height:64px; border-radius:50%; border:2.5px solid var(--ink); background:var(--red);
+  color:#FFF6E6; font-size:26px; cursor:pointer; box-shadow:3px 3px 0 rgba(38,32,25,.9);
+  transition:transform .12s; margin-bottom:12px}
+.say-btn:hover{transform:scale(1.08)}
+.say-btn:active{transform:scale(.94)}
+.say-btn.speaking{animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 10px rgba(198,58,33,.18), 3px 3px 0 rgba(38,32,25,.9)}}
+.radios{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+.radios label{border:2px solid var(--ink); border-radius:999px; padding:6px 14px; font-size:12.5px;
+  font-weight:700; cursor:pointer; background:#fff; transition:.15s}
+.radios label.on{background:var(--ink); color:var(--paper)}
+.feedback-zone{min-height:110px; display:flex; align-items:center; justify-content:center; gap:26px; flex-wrap:wrap; margin-top:14px}
+.stamp{width:96px; height:96px; border:5px solid currentColor; border-radius:14px; display:grid; place-items:center;
+  font-family:var(--cjk); font-weight:900; font-size:54px; transform:rotate(-12deg); flex:none;
+  animation:stampIn .45s cubic-bezier(.2,1.9,.4,1) both}
+.stamp.good{color:var(--jade)} .stamp.bad{color:var(--red)}
+@keyframes stampIn{from{transform:rotate(10deg) scale(2.8); opacity:0}}
+.err-chips{display:flex; gap:8px; flex-wrap:wrap; justify-content:center}
+.err-chips .chip{cursor:pointer; font-family:var(--cjk); font-weight:500}
+.err-chips .chip:hover{background:var(--gold)}
+
+/* ---------- подстановка ---------- */
+.sentence{font-family:var(--cjk); font-weight:500; font-size:clamp(26px,3.8vw,36px); text-align:center; line-height:1.9; margin-bottom:8px}
+.blank{display:inline-block; min-width:1.6em; border-bottom:4px dashed var(--red); text-align:center; color:var(--jade); font-weight:700; padding:0 .1em}
+.blank.filled{animation:popChar .4s cubic-bezier(.2,1.6,.4,1)}
+.opts{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:20px}
+.opt{width:84px; height:84px; border:2.5px solid var(--ink); border-radius:12px; background:#fff;
+  font-family:var(--cjk); font-weight:700; font-size:38px; cursor:pointer; box-shadow:3px 3px 0 rgba(38,32,25,.85);
+  transition:transform .12s; display:grid; place-items:center}
+.opt:hover{transform:translateY(-4px); background:#FFF9EC}
+.opt.right{background:var(--jade); border-color:var(--jade); color:#fff; animation:okpop .4s}
+.opt.wrong{background:#F6D9D2; animation:shake .4s; opacity:.55; cursor:default}
+.transl{color:var(--ink2); font-weight:600; text-align:center; margin-top:14px; font-size:15px; animation:fadeUp .4s both}
+@keyframes fadeUp{from{opacity:0; transform:translateY(8px)}}
+
+/* ---------- прописи ---------- */
+.pads{display:flex; gap:22px; flex-wrap:wrap; justify-content:center}
+.pad{position:relative}
+.pad canvas{display:block; border-radius:8px; touch-action:none; cursor:crosshair;
+  box-shadow:4px 4px 0 rgba(38,32,25,.8)}
+.pad .padch{position:absolute; top:-14px; right:-12px; background:var(--gold); border:2px solid var(--ink);
+  border-radius:8px; padding:2px 9px; font-family:var(--cjk); font-weight:700; font-size:17px; transform:rotate(6deg)}
+.wordinfo{text-align:center; margin-top:18px}
+.wordinfo .w{font-family:var(--cjk); font-weight:700; font-size:36px; letter-spacing:4px}
+.wordinfo .p{font-weight:800; color:var(--red); font-size:19px}
+.wordinfo .r{color:var(--ink2); font-weight:600; font-size:14px}
+
+.listen-tiles{display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:22px}
+
+.final{text-align:center}
+.final h3{font-family:var(--disp); font-weight:400; font-size:clamp(28px,4vw,40px); margin-bottom:6px}
+.final .big{font-family:var(--cjk); font-weight:900; font-size:clamp(48px,8vw,84px); color:var(--red); line-height:1}
+.final .sub{color:var(--ink2); font-weight:600; margin:8px 0 18px}
+
+.overlay{position:fixed; inset:0; background:rgba(38,32,25,.55); z-index:50; display:none;
+  align-items:flex-start; justify-content:center; padding:30px 16px; overflow:auto}
+.overlay.open{display:flex}
+.modal{background:var(--paper); border:3px solid var(--ink); border-radius:14px; max-width:660px; width:100%;
+  box-shadow:8px 8px 0 rgba(38,32,25,.6); animation:fadeUp .25s both}
+.modal-head{display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:2.5px solid var(--ink);
+  background:var(--red); color:#FFF6E6; border-radius:10px 10px 0 0}
+.modal-head h3{font-family:var(--disp); font-weight:400; font-size:22px; flex:1}
+.modal-head button{background:none; border:2px solid #FFF6E6; color:#FFF6E6; border-radius:8px;
+  padding:4px 12px; cursor:pointer; font-weight:800}
+.wrow{display:flex; align-items:center; gap:14px; padding:9px 20px; border-bottom:1px dashed var(--line)}
+.wrow:hover{background:#FFF9EC}
+.wrow .hz{font-family:var(--cjk); font-weight:700; font-size:26px; width:96px; flex:none; letter-spacing:2px}
+.wrow .py{font-weight:800; width:110px; flex:none; color:var(--red-d)}
+.wrow .ru{flex:1; font-size:13.5px; font-weight:500; color:var(--ink2)}
+.wrow .know{border:2px solid var(--ink); background:#fff; border-radius:999px; font-size:11.5px;
+  font-weight:800; padding:4px 10px; cursor:pointer; flex:none}
+.wrow .know.on{background:var(--jade); border-color:var(--jade); color:#fff}
+.mini-say{background:none; border:none; font-size:17px; cursor:pointer; opacity:.6}
+.mini-say:hover{opacity:1; transform:scale(1.15)}
+
+#toast{position:fixed; left:50%; bottom:26px; transform:translateX(-50%) translateY(80px);
+  background:var(--ink); color:var(--paper); padding:11px 22px; border-radius:999px; font-weight:700;
+  font-size:14px; z-index:99; transition:transform .3s cubic-bezier(.2,1.4,.4,1); pointer-events:none;
+  border:2px solid var(--gold)}
+#toast.show{transform:translateX(-50%) translateY(0)}
+.cft{position:fixed; z-index:98; pointer-events:none; border-radius:2px}
+
+footer{padding:40px 0 30px; text-align:center; color:var(--ink2); font-size:13px; font-weight:600}
+footer b{color:var(--red)}
+
+@media(max-width:640px){
+  .masthead{gap:14px}
+  .chips{flex-direction:row; flex-wrap:wrap; align-items:flex-start}
+  .l-num{width:46px; font-size:32px; padding-right:10px}
+  .match-grid{gap:10px 12px}
+  .mcard.hz{font-size:26px}
+  .mcard.ru{font-size:12.5px}
+  .panel{padding:18px}
+}
+</style>
+</head>
+<body>
+
+<span class="amb" style="top:8%; left:3%; font-size:150px; animation-duration:9s">词</span>
+<span class="amb" style="top:55%; left:-2%; font-size:200px; animation-duration:12s; animation-delay:-3s">学</span>
+<span class="amb" style="top:20%; right:2%; font-size:170px; animation-duration:10s; animation-delay:-5s">茶</span>
+<span class="amb" style="bottom:6%; right:6%; font-size:150px; animation-duration:11s; animation-delay:-2s">车</span>
+<span class="amb" style="bottom:30%; left:40%; font-size:120px; animation-duration:13s; animation-delay:-7s">心</span>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="seal">词<small>听写</small></div>
+    <div class="head-t">
+      <div class="kicker">Тренажёр · 汉语听写</div>
+      <h1>Словарный <em>диктант</em></h1>
+      <div class="head-sub">26 слов · темы «在朋友家做客» и «在路上»</div>
+    </div>
+    <div class="chips">
+      <div class="chip">Выучено <b id="chipKnown">0</b>/26</div>
+      <div class="chip">Точность <b id="chipAcc">—</b></div>
+      <div class="chip countdown" id="chipDays">…</div>
+    </div>
+  </header>
+</div>
+
+<div class="ticker"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<main class="wrap" id="app"></main>
+
+<footer class="wrap">Пиши от руки — проверка по чертам · <b>加油！</b> Удачи на диктанте!</footer>
+
+<div class="overlay" id="wordsOverlay">
+  <div class="modal">
+    <div class="modal-head"><h3>Все 26 слов · 生词表</h3><button onclick="closeWords()">✕</button></div>
+    <div id="wordsList"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================== ДАННЫЕ ================== */
+const WORDS=[
+{h:'做客',p:'zuòkè',r:'быть гостем, ходить в гости'},
+{h:'请进',p:'qǐng jìn',r:'входите! (пожалуйста, входите)'},
+{h:'真',p:'zhēn',r:'действительно; настоящий, очень'},
+{h:'干净',p:'gānjìng',r:'чистый, опрятный'},
+{h:'坐',p:'zuò',r:'садиться, сидеть'},
+{h:'哎呀',p:'āiyā',r:'ой! ах! (восклицание)'},
+{h:'客气',p:'kèqi',r:'вежливый; стесняться, церемониться'},
+{h:'一点儿',p:'yìdiǎnr',r:'немного, чуть-чуть'},
+{h:'心意',p:'xīnyì',r:'чувства, знак внимания (о подарке)'},
+{h:'收下',p:'shōuxià',r:'принять, взять (подарок)'},
+{h:'茶',p:'chá',r:'чай'},
+{h:'果汁',p:'guǒzhī',r:'фруктовый сок'},
+{h:'随便',p:'suíbiàn',r:'как удобно; без стеснения'},
+{h:'行',p:'xíng',r:'хорошо, ладно; годиться'},
+{h:'路上',p:'lùshang',r:'в пути, по дороге'},
+{h:'顺利',p:'shùnlì',r:'гладко, успешно'},
+{h:'上',p:'shàng',r:'подниматься; садиться (в транспорт)'},
+{h:'挤',p:'jǐ',r:'тесный, переполненный'},
+{h:'打车',p:'dǎchē',r:'взять такси, поймать машину'},
+{h:'空调',p:'kōngtiáo',r:'кондиционер'},
+{h:'大巴',p:'dàbā',r:'автобус (большой, междугородний)'},
+{h:'地铁',p:'dìtiě',r:'метро'},
+{h:'饿',p:'è',r:'голодный; быть голодным'},
+{h:'吃',p:'chī',r:'есть, кушать'},
+{h:'会',p:'huì',r:'уметь, мочь'},
+{h:'试',p:'shì',r:'пробовать; примерять'}];
+
+const SENTENCES=[
+{h:'做客',s:'星期六我去朋友家____。',t:'В субботу я иду в гости к другу.'},
+{h:'请进',s:'门开了，老师说：“____！”',t:'Дверь открылась, учитель сказал: «Входите!»'},
+{h:'真',s:'今天____冷！',t:'Сегодня действительно холодно!'},
+{h:'干净',s:'她的房间很____。',t:'У неё в комнате очень чисто.'},
+{h:'坐',s:'累了，____下休息一会儿吧。',t:'Устал — присядь, отдохни немного.'},
+{h:'哎呀',s:'____，我的书忘在家里了！',t:'Ой, я забыл книгу дома!'},
+{h:'客气',s:'你太____了，不用买礼物！',t:'Ну что ты церемонишься, не надо было покупать подарок!'},
+{h:'一点儿',s:'我____也不累。',t:'Я нисколько не устал.'},
+{h:'心意',s:'礼物不大，这是我的一点儿____。',t:'Подарок небольшой — это лишь знак моего внимания.'},
+{h:'收下',s:'这是送给你的，请____吧。',t:'Это тебе подарок, прими его, пожалуйста.'},
+{h:'茶',s:'爷爷每天喝____。',t:'Дедушка каждый день пьёт чай.'},
+{h:'果汁',s:'我不喝咖啡，我喝____。',t:'Я не пью кофе, я пью фруктовый сок.'},
+{h:'随便',s:'别客气，____吃。',t:'Не стесняйся, ешь как тебе удобно.'},
+{h:'行',s:'“我们五点见，好____？”“____！”',t:'«Встретимся в пять, хорошо?» — «Идёт!»'},
+{h:'路上',s:'我____坐了两个小时的车。',t:'В пути я ехал два часа.'},
+{h:'顺利',s:'祝你一路____！',t:'Желаю счастливого (гладкого) пути!'},
+{h:'上',s:'快____车吧，要迟到了！',t:'Скорее садись в машину, опоздаем!'},
+{h:'挤',s:'早上的地铁非常____。',t:'Утром в метро очень тесно.'},
+{h:'打车',s:'下雨了，我们____回家吧。',t:'Пошёл дождь, давай возьмём такси домой.'},
+{h:'空调',s:'太热了，请打开____。',t:'Слишком жарко, включи, пожалуйста, кондиционер.'},
+{h:'大巴',s:'我们坐____去机场。',t:'Мы едем в аэропорт на автобусе.'},
+{h:'地铁',s:'北京____很方便。',t:'В Пекине метро очень удобное.'},
+{h:'饿',s:'我____了，先去吃饭吧！',t:'Я проголодался, давай сначала поедим!'},
+{h:'吃',s:'你____过晚饭了吗？',t:'Ты уже поужинал?'},
+{h:'会',s:'我____说一点儿汉语。',t:'Я немного умею говорить по-китайски.'},
+{h:'试',s:'这件衣服很漂亮，你____试吧。',t:'Эта одежда очень красивая, примерь её.'}];
+
+/* ================== УТИЛИТЫ ================== */
+const $=s=>document.querySelector(s);
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function derangeAgainst(arr,against){
+  if(arr.length<2)return shuffle(arr);
+  let out,tries=0;
+  do{out=shuffle(arr);tries++;}
+  while(tries<200&&out.some((v,i)=>v===against[i]));
+  return out;}
+const app=$('#app');
+
+const LS='hz_dict_v1';
+let db={known:[],outline:false,modes:{match:{played:0,best:null},dict:{played:0,best:0},cloze:{played:0,best:null},listen:{played:0,best:null}},acc:{ok:0,all:0},exam:'2026-08-26'};
+try{const raw=localStorage.getItem(LS); if(raw)db=Object.assign(db,JSON.parse(raw))}catch(e){}
+const save=()=>{try{localStorage.setItem(LS,JSON.stringify(db))}catch(e){}};
+const record=(ok)=>{db.acc.all++; if(ok)db.acc.ok++; save(); renderHeader()};
+
+let AC=null;
+function tone(f,d,type='sine',g=.12,t=0){try{
+  AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+  const o=AC.createOscillator(),v=AC.createGain();
+  o.type=type;o.frequency.value=f;o.connect(v);v.connect(AC.destination);
+  const now=AC.currentTime+t;
+  v.gain.setValueAtTime(g,now);v.gain.exponentialRampToValueAtTime(.001,now+d);
+  o.start(now);o.stop(now+d);}catch(e){}}
+const sndOk=()=>{tone(660,.12);tone(880,.16,'sine',.12,.1)};
+const sndBad=()=>{tone(160,.22,'square',.07)};
+const sndClick=()=>{tone(1200,.04,'sine',.05)};
+
+let zhVoice=null;
+function pickVoice(){const vs=speechSynthesis.getVoices();
+  zhVoice=vs.find(v=>/zh[-_]CN/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;}
+if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function say(text,rate=.82){
+  if(!('speechSynthesis' in window)){toast('Озвучка не поддерживается этим браузером 😕');return false;}
+  speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(text);
+  u.lang='zh-CN'; if(zhVoice)u.voice=zhVoice; u.rate=rate;
+  speechSynthesis.speak(u); return true;}
+
+let toastT=null;
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+function confetti(n=28){const cols=['#C63A21','#E3A62E','#2E7D5B','#262019','#FFFCF2'];
+  for(let i=0;i<n;i++){const d=document.createElement('div');d.className='cft';
+    const s=6+Math.random()*8;d.style.cssText=`width:${s}px;height:${s*1.4}px;background:${cols[i%cols.length]};
+    left:${20+Math.random()*60}vw;top:-20px;`;
+    document.body.appendChild(d);
+    d.animate([{transform:'translateY(0) rotate(0)',opacity:1},
+      {transform:`translateY(${60+Math.random()*35}vh) translateX(${(Math.random()-.5)*160}px) rotate(${(Math.random()-.5)*720}deg)`,opacity:0}],
+      {duration:1400+Math.random()*900,easing:'cubic-bezier(.2,.6,.4,1)'}).onfinish=()=>d.remove();}}
+
+function renderHeader(){
+  $('#chipKnown').textContent=db.known.length;
+  $('#chipAcc').textContent=db.acc.all?Math.round(db.acc.ok/db.acc.all*100)+'%':'—';
+  const c=$('#chipDays');
+  if(db.exam){const d=Math.ceil((new Date(db.exam+'T00:00:00')-new Date())/864e5);
+    if(d>1){c.innerHTML=`До диктанта <b>${d}</b> дн.<span class="edit" onclick="editExam()">✎</span>`;c.classList.remove('today')}
+    else if(d===1){c.innerHTML='Диктант <b>завтра</b>!';c.classList.add('today')}
+    else if(d===0){c.innerHTML='Диктант <b>сегодня</b>! 加油';c.classList.add('today')}
+    else{c.innerHTML='Диктант уже прошёл <span class="edit" onclick="editExam()">✎</span>';c.classList.remove('today')}}
+  else c.innerHTML='<span class="edit" onclick="editExam()">задать дату диктанта ✎</span>';}
+function editExam(){const v=prompt('Дата диктанта (ГГГГ-ММ-ДД):',db.exam||'2026-08-26');
+  if(v&&/^\d{4}-\d{2}-\d{2}$/.test(v)){db.exam=v;save();renderHeader()}else if(v!==null)toast('Формат: 2026-08-26');}
+
+(function(){const part=WORDS.map(w=>`${w.h} ${w.p}<i>✦</i>`).join('');
+  $('#tickerTrack').innerHTML=`<span>${part}</span><span>${part}</span>`;})();
+
+/* ================== МЕНЮ ================== */
+function showMenu(){
+  speechSynthesis&&speechSynthesis.cancel();
+  const m=db.modes;
+  const rec={
+    match:m.match.played?`сыграно раундов: ${m.match.played}${m.match.best!=null?' · ошибок: '+m.match.best:''}`:'',
+    dict:m.dict.played?`лучшая серия: ${m.dict.best}`:'',
+    cloze:m.cloze.best!=null?`лучший результат: ${m.cloze.best}/${SENTENCES.length}`:'',
+    listen:m.listen.best!=null?`лучший результат: ${m.listen.best}/26`:'',
+    write:''};
+  const key=t=>t==='Соедини пары'?'match':t==='Диктант ✍️'?'dict':t.startsWith('Вставь')?'cloze':t.startsWith('На')?'listen':'write';
+  app.innerHTML=`
+  <h2 class="menu-title">Выбери упражнение <span>加油!</span></h2>
+  <div class="lessons">
+    ${[
+      ['一','Соедини пары','Иероглиф ↔ пиньинь и перевод. 5 раундов по всем словам.','showMatch()'],
+      ['二','Диктант ✍️','Слышишь или видишь слово — пишешь иероглифы от руки, проверка по чертам.','showDict()'],
+      ['三','Вставь слово','Выбери нужный иероглиф в предложение.','showCloze()'],
+      ['四','На слух','Слушаешь слово и узнаёшь его среди четырёх.','showListen()'],
+      ['五','Прописи 田字格','Свободное письмо в клетках — мышью или пальцем.','showWrite()'],
+    ].map(([n,t,d,fn])=>`
+    <button class="lesson" onclick="sndClick();${fn}">
+      <div class="l-num">${n}</div>
+      <div class="l-body"><h3>${t}</h3><p>${d}</p>${rec[key(t)]?`<div class="l-rec">★ ${rec[key(t)]}</div>`:''}</div>
+      <div class="l-arrow">→</div>
+    </button>`).join('')}
+  </div>
+  <div class="tools">
+    <button class="btn" onclick="openWords()">📖 Все слова (26)</button>
+    <button class="btn small" onclick="resetAll()">Сбросить прогресс</button>
+    ${('speechSynthesis' in window)?'':'<span class="chip">⚠ озвучка недоступна</span>'}
+  </div>`;
+  renderHeader();}
+function resetAll(){if(confirm('Точно сбросить весь прогресс?')){localStorage.removeItem(LS);location.reload()}}
+
+/* ================== ПАРЫ ================== */
+let M={};
+function showMatch(){
+  speechSynthesis&&speechSynthesis.cancel();
+  const items=shuffle([...WORDS.keys()]);
+  const rounds=[];let i=0;
+  while(i<items.length){let take=6;const left=items.length-i;
+    if(left-take>0&&left-take<=3)take=left;
+    rounds.push(items.slice(i,i+take));i+=take;}
+  M={type:'py',rounds,r:0,errors:0,sel:null,locked:new Set(),done:0};
+  renderMatchFrame();}
+function setMType(t){M.type=t;M.r=0;M.errors=0;renderMatchFrame();}
+function renderMatchFrame(){
+  const total=M.rounds.length;
+  app.innerHTML=`
+  <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
+    <h2><i>一</i>Соедини пары</h2><div class="spacer"></div>
+    <div class="radios">
+      <label class="${M.type==='py'?'on':''}" onclick="setMType('py')">пиньинь</label>
+      <label class="${M.type==='ru'?'on':''}" onclick="setMType('ru')">перевод</label>
+    </div></div>
+  <div class="hud"><span class="pill">Раунд <b>${Math.min(M.r+1,total)}</b>/${total}</span>
+    <span class="pill">Ошибки: <b id="mErr">${M.errors}</b></span></div>
+  <div class="panel"><div id="mArea"></div></div>`;
+  renderMRound();}
+function renderMRound(){
+  M.sel=null;M.locked=new Set();M.done=0;
+  const idxs=M.rounds[M.r];
+  const left=shuffle(idxs);
+  const right=derangeAgainst(idxs,left);
+  $('#mArea').innerHTML=`<div class="match-grid">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${left.map(i=>`<div class="mcard hz" data-side="L" data-i="${i}">${WORDS[i].h}</div>`).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${right.map(i=>`<div class="mcard ${M.type==='py'?'py':'ru'}" data-side="R" data-i="${i}">${M.type==='py'?WORDS[i].p:WORDS[i].r}</div>`).join('')}</div>
+  </div>`;
+  $('#mArea').querySelectorAll('.mcard').forEach(c=>c.onclick=()=>mPick(c));}
+function mPick(c){
+  const i=+c.dataset.i;
+  if(M.locked.has(c.dataset.side+i)||c.classList.contains('ok'))return;
+  sndClick();
+  if(!M.sel){M.sel=c;c.classList.add('sel');return;}
+  if(M.sel===c){c.classList.remove('sel');M.sel=null;return;}
+  if(M.sel.dataset.side===c.dataset.side){M.sel.classList.remove('sel');M.sel=c;c.classList.add('sel');return;}
+  const a=M.sel;
+  if(a.dataset.i===c.dataset.i){
+    a.classList.remove('sel');a.classList.add('ok');c.classList.add('ok');
+    M.locked.add(a.dataset.side+i);M.locked.add(c.dataset.side+i);
+    M.done++;M.sel=null;sndOk();record(true);
+    if(M.done===M.rounds[M.r].length)setTimeout(mRoundDone,500);
+  }else{
+    M.errors++;$('#mErr').textContent=M.errors;sndBad();record(false);
+    a.classList.remove('sel');a.classList.add('bad');c.classList.add('bad');M.sel=null;
+    setTimeout(()=>{a.classList.remove('bad');c.classList.remove('bad')},450);}}
+function mRoundDone(){
+  confetti();
+  db.modes.match.played++;
+  if(M.r===M.rounds.length-1){
+    if(db.modes.match.best==null||M.errors<db.modes.match.best)db.modes.match.best=M.errors;
+    save();
+    $('#mArea').innerHTML=`<div class="final"><div class="big">🏮 对！</div>
+      <h3>Все пары собраны</h3><p class="sub">Ошибок за игру: ${M.errors}</p>
+      <button class="btn primary" onclick="showMatch()">Ещё раз</button>
+      <button class="btn" onclick="showMenu()">В меню</button></div>`;
+  }else{
+    $('#mArea').innerHTML=`<div class="final"><div class="stamp good" style="margin:0 auto">好</div>
+      <h3 style="margin-top:14px">Раунд пройден!</h3><p class="sub">Ошибок пока: ${M.errors}</p>
+      <button class="btn primary" onclick="M.r++;renderMatchFrame()">Раунд ${M.r+2} →</button></div>`;}}
+
+/* ================== ДИКТАНТ (рукописный) ================== */
+let D={};
+let HW_OK=null;
+async function ensureHW(){
+  if(HW_OK!==null)return HW_OK;
+  if(typeof HanziWriter==='undefined'){HW_OK=false;return false;}
+  try{
+    const div=document.createElement('div');
+    div.style.cssText='position:fixed;left:-9999px;top:0;width:20px;height:20px;opacity:0';
+    document.body.appendChild(div);
+    const probe=HanziWriter.create(div,'做',{width:20,height:20,showCharacter:false});
+    const chars=[...new Set(WORDS.map(w=>w.h).join(''))];
+    await Promise.all(chars.map(c=>probe.loadCharacterData(c)));
+    document.body.removeChild(div);
+    HW_OK=true;
+  }catch(e){HW_OK=false;}
+  return HW_OK;
+}
+async function showDict(onlyErrors){
+  speechSynthesis&&speechSynthesis.cancel();
+  const q=onlyErrors&&D.errors&&D.errors.size?shuffle([...D.errors]):shuffle([...WORDS.keys()]);
+  D={q,i:0,right:0,streak:0,best:0,errors:new Set(),mode:'pinyin',
+     outline:db.outline===true,
+     answered:false,counted:false};
+  app.innerHTML=`<div class="panel" style="text-align:center;padding:60px"><div class="dict-pinyin">Загружаю данные иероглифов…</div></div>`;
+  await ensureHW();
+  if(!HW_OK)toast('Данные черт недоступны — включена проверка по контуру');
+  renderDictFrame();renderDictQ();}
+function dictMode(m){D.mode=m;if(D.mode==='audio'&&!('speechSynthesis' in window)){toast('Озвучка недоступна — включаю пиньинь');D.mode='pinyin'}renderDictFrame();renderDictQ();}
+function renderDictFrame(){
+  app.innerHTML=`
+  <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
+    <h2><i>二</i>Диктант ✍️</h2><div class="spacer"></div>
+    <div class="radios">
+      <label class="${D.mode==='pinyin'?'on':''}" onclick="dictMode('pinyin')">пиньинь</label>
+      <label class="${D.mode==='audio'?'on':''}" onclick="dictMode('audio')">🔊 звук</label>
+      <label class="${D.mode==='ru'?'on':''}" onclick="dictMode('ru')">перевод</label>
+    </div></div>
+  <div class="hud">
+    <span class="pill">Слово <b id="dCur">${D.i+1}</b>/${D.q.length}</span>
+    <span class="pill">Верно: <b id="dRight">${D.right}</b></span>
+    <span class="pill">Серия: <b id="dStreak">${D.streak}</b> 🔥</span>
+  </div>
+  <div class="panel" id="dPanel"></div>`;}
+function renderDictQ(){
+  const w=WORDS[D.q[D.i]];
+  D.answered=false;D.counted=false;D.wordMistakes=0;D.totalMistakes=0;
+  const chars=[...w.h];
+  const showPy=D.mode==='pinyin', showRu=D.mode==='ru', audio=D.mode==='audio';
+  $('#dPanel').innerHTML=`
+  <div class="dict-prompt">
+    ${audio?`<button class="say-btn" id="dSay" onclick="sayDictWord(this)">🔊</button>
+      <div class="dict-ru">нажми и слушай · <button class="btn small" onclick="sayDictWord(null,0.55)">🐢 медленнее</button></div>`:''}
+    ${showPy?`<div class="dict-pinyin">${w.p}</div>`:''}
+    ${showRu?`<div class="dict-ru" style="font-size:20px">${w.r}</div>`:''}
+    ${!showRu&&!audio?`<div class="dict-ru hiddenru" id="dRu">${w.r}</div>
+      <button class="btn small" onclick="const e=document.getElementById('dRu');if(e){e.classList.remove('hiddenru');this.remove()}">👀 подсмотреть перевод</button>`:''}
+  </div>
+  <div class="cells" style="margin-bottom:10px">
+    ${chars.map((c,i)=>`<div class="tzg dcell" style="width:152px;height:152px"><div class="hw" id="hw${i}"></div><div class="mark" id="mk${i}"></div></div>`).join('')}
+  </div>
+  <div class="dict-ru" id="dLive" style="text-align:center;min-height:22px">
+    ${HW_OK?'пиши в клетках от руки — каждая черта проверяется ✍️':'нарисуй иероглифы и нажми «Проверить»'}
+  </div>
+  <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <button class="btn" onclick="dictRetry()">🔁 заново</button>
+    <button class="btn" onclick="dictReveal()">Показать ответ</button>
+    <button class="btn" id="dOutBtn" onclick="dictOutline()">обводка: ${D.outline?'вкл':'выкл'}</button>
+    ${HW_OK?'':'<button class="btn" onclick="fbClear()">🧹 очистить</button><button class="btn primary" onclick="fbCheck()">Проверить ✓</button>'}
+  </div>
+  <div class="feedback-zone" id="dFb"></div>`;
+  startCells(chars);
+  if(audio)setTimeout(()=>sayDictWord($('#dSay')),400);}
+function sayDictWord(btn,rate){const w=WORDS[D.q[D.i]];if(say(w.h,rate||.82)&&btn){btn.classList.add('speaking');setTimeout(()=>btn.classList.remove('speaking'),1300)}}
+
+function cleanupWriters(){
+  if(D.writers)D.writers.forEach(wr=>{try{wr.cancelQuiz()}catch(e){};try{if(wr.destroy)wr.destroy()}catch(e){}});
+  D.writers=null;}
+function startCells(chars){
+  cleanupWriters();
+  document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});
+  if(HW_OK){
+    D.writers=chars.map((ch,i)=>{
+      const el=$('#hw'+i);el.innerHTML='';
+      return HanziWriter.create(el,ch,{
+        width:148,height:148,padding:5,
+        showCharacter:false,showOutline:D.outline,
+        strokeColor:'#262019',outlineColor:'#E7DFC9',  /* тонкая светлая обводка */
+        drawingColor:'#C63A21',highlightColor:'#E3A62E',
+        strokeAnimationSpeed:1.2,delayBetweenStrokes:120,
+        leniency:1.2,renderer:'canvas'});});
+    D.remaining=chars.length;D.totalMistakes=0;D.wordMistakes=0;
+    D.writers.forEach((wr,i)=>{
+      wr.quiz({
+        onMistake:()=>{D.wordMistakes++;
+          const lv=$('#dLive');if(lv)lv.innerHTML=`ошибки в чертах: <b style="color:var(--red)">${D.wordMistakes}</b>`;},
+        onComplete:s=>{D.totalMistakes+=s.totalMistakes;D.remaining--;
+          const mk=$('#mk'+i);if(mk)mk.textContent='✓';
+          if(D.remaining===0)setTimeout(hwVerdict,350);}});});
+  }else{
+    D.fbc=chars.map((ch,i)=>fbInit($('#hw'+i),ch));}}
+function hwVerdict(){
+  if(D.answered)return;D.answered=true;
+  if(D.totalMistakes===0)dictSuccess();else dictFail(D.totalMistakes);}
+
+function dictSuccess(){
+  const w=WORDS[D.q[D.i]];
+  if(!D.counted){D.counted=true;D.right++;D.streak++;D.best=Math.max(D.best,D.streak);record(true);}
+  sndOk();confetti(22);
+  const lv=$('#dLive');if(lv)lv.innerHTML=`<b style="color:var(--jade)">Все черты написаны верно! 太好了！</b>`;
+  $('#dRight').textContent=D.right;$('#dStreak').textContent=D.streak;
+  $('#dFb').innerHTML=`<div class="stamp good">对</div>
+    <div><div style="font-family:var(--cjk);font-weight:700;font-size:24px">${w.h} · ${w.p}</div>
+    <div class="dict-ru">${w.r}</div>
+    <div style="margin-top:10px"><button class="btn small" onclick="say('${w.h}')">🔊</button>
+    <button class="btn primary small" onclick="dictNext()">Дальше →</button></div></div>`;}
+function dictFail(n){
+  const w=WORDS[D.q[D.i]];
+  if(!D.counted){D.counted=true;record(false);D.errors.add(D.q[D.i]);D.streak=0;}
+  sndBad();
+  $('#dRight').textContent=D.right;$('#dStreak').textContent=D.streak;
+  $('#dFb').innerHTML=`<div class="stamp bad">✗</div>
+    <div><div style="font-weight:800;font-size:17px">${HW_OK?'Ошибки в чертах: '+n+' — сверься с образцом':'Иероглифы не совпадают с образцом'}</div>
+    <div class="dict-ru">${w.h} · ${w.p} — ${w.r}</div>
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn gold small" onclick="dictRetry()">🔁 Написать ещё раз</button>
+      <button class="btn small" onclick="dictShowAnim()">👀 как правильно</button>
+      <button class="btn primary small" onclick="dictNext()">Дальше →</button></div></div>`;}
+function dictRetry(){
+  const w=WORDS[D.q[D.i]];
+  D.answered=false;
+  $('#dFb').innerHTML='';
+  const lv=$('#dLive');if(lv)lv.innerHTML=HW_OK?'попробуй ещё раз — пиши внимательно ✍️':'нарисуй и нажми «Проверить»';
+  startCells([...w.h]);}
+function dictReveal(){
+  if(D.answered&&D.counted)return;
+  D.answered=true;
+  if(!D.counted){D.counted=true;record(false);D.errors.add(D.q[D.i]);D.streak=0;}
+  $('#dRight').textContent=D.right;$('#dStreak').textContent=D.streak;
+  const w=WORDS[D.q[D.i]];
+  if(HW_OK){D.writers.forEach(wr=>{try{wr.cancelQuiz()}catch(e){};wr.showCharacter({duration:500})});}
+  else D.fbc.forEach(c=>{const{ctx,S,ch}=c;ctx.fillStyle='rgba(46,125,91,.9)';
+    ctx.font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ch,S/2,S/2+S*0.03);});
+  $('#dFb').innerHTML=`<div class="stamp good" style="color:var(--gold)">记</div>
+    <div><div style="font-family:var(--cjk);font-weight:700;font-size:24px">${w.h} · ${w.p}</div>
+    <div class="dict-ru">${w.r} — запомни и потренируй в «Прописях»</div>
+    <div style="margin-top:10px"><button class="btn small" onclick="say('${w.h}')">🔊</button>
+    <button class="btn primary small" onclick="dictNext()">Запомнила →</button></div></div>`;}
+function dictShowAnim(){
+  if(!HW_OK)return;
+  D.writers.forEach(wr=>{try{wr.cancelQuiz()}catch(e){};wr.animateCharacter()});
+  toast('Смотри порядок черт, потом «заново»');}
+function dictOutline(){
+  D.outline=!D.outline;db.outline=D.outline;save();
+  const b=$('#dOutBtn');if(b)b.textContent='обводка: '+(D.outline?'вкл':'выкл');
+  if(!D.answered){
+    if(HW_OK){startCells([...WORDS[D.q[D.i]].h]);}
+    else if(D.fbc){D.fbc.forEach(fbDraw);}
+  }
+  toast(D.outline?'Контур включён — можно обводить':'Контур выключен — пишем по памяти');}
+function dictNext(){
+  cleanupWriters();D.i++;
+  if(D.i>=D.q.length)return dictFinish();
+  $('#dCur').textContent=D.i+1;$('#dRight').textContent=D.right;$('#dStreak').textContent=D.streak;
+  renderDictQ();}
+function dictFinish(){
+  cleanupWriters();
+  db.modes.dict.played++;db.modes.dict.best=Math.max(db.modes.dict.best,D.best);save();
+  const total=D.q.length,pct=Math.round(D.right/total*100);
+  if(pct>=80)confetti(60);
+  const errs=[...D.errors].map(i=>WORDS[i]);
+  $('#dPanel').innerHTML=`<div class="final">
+    <div class="big">${D.right}/${total}</div>
+    <h3>${pct>=90?'太好了！Отлично!':pct>=70?'不错！Хорошо!':pct>=50?'加油！Неплохо!':'别灰心！Повторим ещё!'}</h3>
+    <p class="sub">Точность ${pct}% · лучшая серия ${D.best}</p>
+    ${errs.length?`<p style="font-weight:700;margin-bottom:8px">Слова с ошибками — повтори их:</p>
+      <div class="err-chips">${errs.map(w=>`<span class="chip" onclick="say('${w.h}')" title="${w.p}">${w.h} ${w.p}</span>`).join('')}</div>
+      <div style="margin-top:18px"><button class="btn gold" onclick="showDict(true)">🔁 Повторить ошибки (${errs.length})</button></div>`:''}
+    <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn primary" onclick="showDict()">Заново</button>
+      <button class="btn" onclick="showMenu()">В меню</button></div></div>`;}
+
+/* ---- запасная проверка: сравнение с контуром ---- */
+function fbInit(el,ch){
+  el.innerHTML='';
+  const S=148,dpr=window.devicePixelRatio||1;
+  const cv=document.createElement('canvas');
+  cv.width=S*dpr;cv.height=S*dpr;cv.style.width=S+'px';cv.style.height=S+'px';
+  cv.style.touchAction='none';cv.style.cursor='crosshair';
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  const cell={cv,ctx,S,ch,strokes:[],cur:null};
+  const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);
+    cell.cur=[pos(e)];cell.strokes.push(cell.cur);fbDraw(cell);});
+  cv.addEventListener('pointermove',e=>{if(!cell.cur)return;cell.cur.push(pos(e));fbDraw(cell);});
+  const end=()=>cell.cur=null;
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointerleave',end);
+  el.appendChild(cv);fbDraw(cell);return cell;}
+function fbDraw(cell){const{ctx,S,ch}=cell;
+  ctx.clearRect(0,0,S,S);
+  if(D.outline){
+    /* тонкая обводка: лёгкий контур по краю иероглифа + едва заметная заливка */
+    ctx.font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(38,32,25,.05)';
+    ctx.fillText(ch,S/2,S/2+S*0.03);
+    ctx.lineWidth=1.6;
+    ctx.strokeStyle='rgba(38,32,25,.32)';
+    ctx.strokeText(ch,S/2,S/2+S*0.03);}
+  ctx.strokeStyle='#93250F';ctx.lineWidth=10;ctx.lineCap='round';ctx.lineJoin='round';
+  for(const st of cell.strokes){if(st.length<2)continue;
+    ctx.beginPath();ctx.moveTo(st[0].x,st[0].y);
+    for(let i=1;i<st.length;i++)ctx.lineTo(st[i].x,st[i].y);ctx.stroke();}}
+function fbClear(){if(D.fbc)D.fbc.forEach(c=>{c.strokes=[];fbDraw(c)});
+  document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});}
+function fbCountInk(cv){const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
+  let n=0;for(let i=3;i<d.length;i+=4)if(d[i]>90)n++;return n;}
+function fbGrade(cell){
+  const S=cell.S;
+  const mk=()=>{const c=document.createElement('canvas');c.width=c.height=S;return c;};
+  const t=mk(),tc=t.getContext('2d');
+  tc.font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
+  tc.textAlign='center';tc.textBaseline='middle';tc.fillStyle='#000';
+  tc.fillText(cell.ch,S/2,S/2+S*0.03);
+  const total=fbCountInk(t);
+  const c1=mk(),x1=c1.getContext('2d');
+  x1.drawImage(t,0,0);x1.globalCompositeOperation='destination-out';
+  x1.lineWidth=16;x1.lineCap='round';x1.lineJoin='round';x1.strokeStyle='#000';
+  for(const st of cell.strokes){if(st.length<2)continue;
+    x1.beginPath();x1.moveTo(st[0].x,st[0].y);
+    for(let i=1;i<st.length;i++)x1.lineTo(st[i].x,st[i].y);x1.stroke();}
+  const coverage=total?1-fbCountInk(c1)/total:0;
+  const c2=mk(),x2=c2.getContext('2d');
+  x2.drawImage(cell.cv,0,0,cell.cv.width,cell.cv.height,0,0,S,S);
+  x2.globalCompositeOperation='destination-out';x2.fillStyle='#000';
+  x2.font=tc.font;x2.textAlign='center';x2.textBaseline='middle';
+  [[0,0],[6,0],[-6,0],[0,6],[0,-6],[4,4],[-4,-4],[4,-4],[-4,4]]
+    .forEach(([dx,dy])=>x2.fillText(cell.ch,S/2+dx,S/2+S*0.03+dy));
+  const uT=fbCountInk(cell.cv),precision=uT?1-fbCountInk(c2)/uT:0;
+  return coverage>=0.6&&precision>=0.5&&uT>60;}
+function fbCheck(){
+  if(D.answered)return;
+  let fails=0;
+  D.fbc.forEach((cell,i)=>{const ok=fbGrade(cell);
+    const mk=$('#mk'+i);mk.textContent=ok?'✓':'✗';mk.style.color=ok?'var(--jade)':'var(--red)';
+    if(!ok)fails++;});
+  if(fails===0){D.answered=true;dictSuccess();}else{D.answered=true;dictFail(fails);}}
+
+/* ================== ПОДСТАНОВКА ================== */
+let C={};
+function showCloze(){
+  speechSynthesis&&speechSynthesis.cancel();
+  C={q:shuffle(SENTENCES.map((s,i)=>i)),i:0,ok:0,solved:false,firstTry:true};
+  renderClozeFrame();renderClozeQ();}
+function renderClozeFrame(){
+  app.innerHTML=`
+  <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
+    <h2><i>三</i>Вставь слово</h2><div class="spacer"></div></div>
+  <div class="hud"><span class="pill">Предложение <b id="cCur">1</b>/${C.q.length}</span>
+    <span class="pill">С первой попытки: <b id="cOk">0</b></span></div>
+  <div class="panel" id="cPanel"></div>`;}
+function renderClozeQ(){
+  const q=SENTENCES[C.q[C.i]];
+  C.solved=false;C.firstTry=true;
+  const others=shuffle(WORDS.filter(x=>x.h!==q.h)).slice(0,3).map(x=>x.h);
+  const opts=shuffle([q.h,...others]);
+  const [l,r]=q.s.split('____');
+  $('#cPanel').innerHTML=`
+    <div class="sentence">${l}<span class="blank" id="cBlank">？</span>${r}</div>
+    <div class="opts">${opts.map(o=>`<button class="opt" onclick="clozePick(this,'${o}')">${o}</button>`).join('')}</div>
+    <div id="cFb"></div>`;}
+function clozePick(btn,ch){
+  if(C.solved)return;
+  const q=SENTENCES[C.q[C.i]];
+  if(ch===q.h){
+    C.solved=true;btn.classList.add('right');
+    const blank=$('#cBlank');blank.textContent=ch;blank.classList.add('filled');
+    if(C.firstTry){C.ok++;record(true);sndOk();confetti(14);}else{record(true);sndOk();}
+    $('#cFb').innerHTML=`<div class="transl">${q.t}</div>
+      <div style="text-align:center;margin-top:14px">
+        <button class="btn small" onclick="say('${q.s.replace('____',q.h)}')">🔊 послушать</button>
+        <button class="btn primary small" onclick="clozeNext()">Дальше →</button></div>`;
+  }else{C.firstTry=false;btn.classList.add('wrong');btn.disabled=true;sndBad();record(false);}}
+function clozeNext(){
+  C.i++;
+  if(C.i>=C.q.length)return clozeFinish();
+  $('#cCur').textContent=C.i+1;$('#cOk').textContent=C.ok;renderClozeQ();}
+function clozeFinish(){
+  db.modes.cloze.played++;
+  if(db.modes.cloze.best==null||C.ok>db.modes.cloze.best)db.modes.cloze.best=C.ok;save();
+  if(C.ok>=C.q.length*.8)confetti(60);
+  $('#cPanel').innerHTML=`<div class="final"><div class="big">${C.ok}/${C.q.length}</div>
+    <h3>${C.ok>=23?'太好了！':C.ok>=18?'不错！':'再来一次！'}</h3>
+    <p class="sub">предложений собрано с первой попытки</p>
+    <button class="btn primary" onclick="showCloze()">Ещё раз</button>
+    <button class="btn" onclick="showMenu()">В меню</button></div>`;}
+
+/* ================== НА СЛУХ ================== */
+let L={};
+function showListen(){
+  speechSynthesis&&speechSynthesis.cancel();
+  L={q:shuffle([...WORDS.keys()]),i:0,ok:0,firstTry:true};
+  app.innerHTML=`
+  <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
+    <h2><i>四</i>На слух</h2><div class="spacer"></div></div>
+  <div class="hud"><span class="pill">Слово <b id="lCur">1</b>/26</span>
+    <span class="pill">Узнано: <b id="lOk">0</b></span></div>
+  <div class="panel" id="lPanel"></div>`;
+  renderListenQ();}
+function renderListenQ(){
+  const w=WORDS[L.q[L.i]];L.firstTry=true;
+  const opts=shuffle([w.h,...shuffle(WORDS.filter(x=>x.h!==w.h)).slice(0,3).map(x=>x.h)]);
+  const noTTS=!('speechSynthesis' in window);
+  $('#lPanel').innerHTML=`
+    <div class="dict-prompt">
+      ${noTTS?`<div class="dict-pinyin">${w.p}</div><div class="dict-ru">озвучка недоступна — читаем пиньинь</div>`
+      :`<button class="say-btn" id="lSay" onclick="listenPlay(this)">🔊</button>
+        <div class="dict-ru">слушай и выбери иероглиф · <button class="btn small" onclick="listenPlay(null,0.55)">🐢 медленнее</button></div>`}
+    </div>
+    <div class="listen-tiles">${opts.map(o=>`<button class="opt" onclick="listenPick(this,'${o}')">${o}</button>`).join('')}</div>
+    <div id="lFb"></div>`;
+  if(!noTTS)setTimeout(()=>listenPlay($('#lSay')),400);}
+function listenPlay(btn,rate){const w=WORDS[L.q[L.i]];if(say(w.h,rate||.8)&&btn){btn.classList.add('speaking');setTimeout(()=>btn.classList.remove('speaking'),1200)}}
+function listenPick(btn,ch){
+  const w=WORDS[L.q[L.i]];
+  if(btn.classList.contains('right'))return;
+  if(ch===w.h){
+    btn.classList.add('right');
+    if(L.firstTry){L.ok++;record(true);sndOk();confetti(12);}else{record(true);sndOk();}
+    $('#lFb').innerHTML=`<div class="transl">${w.p} — ${w.r}</div>
+      <div style="text-align:center;margin-top:14px"><button class="btn primary small" onclick="listenNext()">Дальше →</button></div>`;
+    $('#lOk').textContent=L.ok;
+  }else{L.firstTry=false;btn.classList.add('wrong');btn.disabled=true;sndBad();record(false);}}
+function listenNext(){
+  L.i++;
+  if(L.i>=L.q.length){
+    db.modes.listen.played++;
+    if(db.modes.listen.best==null||L.ok>db.modes.listen.best)db.modes.listen.best=L.ok;save();
+    if(L.ok>=21)confetti(60);
+    $('#lPanel').innerHTML=`<div class="final"><div class="big">${L.ok}/26</div>
+      <h3>${L.ok>=23?'太好了！':L.ok>=18?'不错！':'再试一次！'}</h3>
+      <p class="sub">слов узнано на слух с первой попытки</p>
+      <button class="btn primary" onclick="showListen()">Ещё раз</button>
+      <button class="btn" onclick="showMenu()">В меню</button></div>`;return;}
+  $('#lCur').textContent=L.i+1;renderListenQ();}
+
+/* ================== ПРОПИСИ ================== */
+let W={i:0,ghost:true,pads:[]};
+function showWrite(){
+  speechSynthesis&&speechSynthesis.cancel();
+  W.i=Math.floor(Math.random()*WORDS.length);W.ghost=true;
+  app.innerHTML=`
+  <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
+    <h2><i>五</i>Прописи 田字格</h2><div class="spacer"></div></div>
+  <div class="panel" style="text-align:center">
+    <div class="pads" id="pads"></div>
+    <div class="wordinfo" id="wInfo"></div>
+    <div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+      <button class="btn" onclick="wPrev()">◀ другое слово</button>
+      <button class="btn" onclick="wNext()">другое слово ▶</button>
+      <button class="btn gold" onclick="wRandom()">🎲 случайное</button>
+      <button class="btn" onclick="wSay()">🔊 послушать</button>
+      <button class="btn" onclick="wClear()">🧹 очистить</button>
+      <button class="btn" id="wGhostBtn" onclick="wGhost()">образец: вкл</button>
+    </div>
+    <p style="margin-top:16px;color:var(--ink2);font-size:13px;font-weight:600">
+      Пиши мышью или пальцем прямо в клетках. Порядок черт: сверху вниз, слева направо, сначала горизонтальные, потом вертикальные.</p>
+  </div>`;
+  renderPads();}
+function wGo(n){W.i=(n+WORDS.length)%WORDS.length;renderPads();}
+function wPrev(){wGo(W.i-1)}function wNext(){wGo(W.i+1)}
+function wRandom(){let n;do{n=Math.floor(Math.random()*WORDS.length)}while(n===W.i&&WORDS.length>1);wGo(n)}
+function wSay(){say(WORDS[W.i].h)}
+function wClear(){W.pads.forEach(p=>{p.strokes=[];drawPad(p)})}
+function wGhost(){W.ghost=!W.ghost;$('#wGhostBtn').textContent='образец: '+(W.ghost?'вкл':'выкл');W.pads.forEach(drawPad)}
+function renderPads(){
+  const w=WORDS[W.i];
+  $('#pads').innerHTML=[...w.h].map((ch,i)=>`<div class="pad"><canvas id="cv${i}" width="0" height="0"></canvas><div class="padch">${ch}</div></div>`).join('');
+  $('#wInfo').innerHTML=`<div class="w">${w.h}</div><div class="p">${w.p}</div><div class="r">${w.r}</div>
+    <button class="btn small" style="margin-top:8px" onclick="wSay()">🔊</button>`;
+  W.pads=[...w.h].map((ch,i)=>initPad($('#cv'+i),ch));
+  if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>W.pads.forEach(p=>drawPad(p)));}
+function initPad(cv,ch){
+  const S=Math.min(230,Math.max(150,(window.innerWidth-90)/(WORDS[W.i].h.length+0.5)));
+  const dpr=window.devicePixelRatio||1;
+  cv.width=S*dpr;cv.height=S*dpr;cv.style.width=S+'px';cv.style.height=S+'px';
+  const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
+  const P={cv,ctx,S,ch,strokes:[],cur:null};
+  const pos=e=>{const r=cv.getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+  cv.addEventListener('pointerdown',e=>{e.preventDefault();cv.setPointerCapture(e.pointerId);
+    P.cur=[pos(e)];P.strokes.push(P.cur);drawPad(P);});
+  cv.addEventListener('pointermove',e=>{if(!P.cur)return;P.cur.push(pos(e));drawPad(P);});
+  const end=()=>{P.cur=null};
+  cv.addEventListener('pointerup',end);cv.addEventListener('pointerleave',end);
+  drawPad(P);return P;}
+function drawPad(P){
+  const{ctx,S,ch}=P;
+  ctx.clearRect(0,0,S,S);
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,S,S);
+  ctx.strokeStyle='#C63A21';ctx.lineWidth=2.5;ctx.strokeRect(1.5,1.5,S-3,S-3);
+  ctx.setLineDash([6,7]);ctx.strokeStyle='rgba(198,58,33,.4)';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(S/2,4);ctx.lineTo(S/2,S-4);ctx.moveTo(4,S/2);ctx.lineTo(S-4,S/2);ctx.stroke();
+  ctx.setLineDash([]);
+  if(W.ghost){ctx.fillStyle='rgba(38,32,25,.16)';
+    ctx.font=`700 ${S*0.72}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ch,S/2,S/2+S*0.03);}
+  ctx.strokeStyle='#93250F';ctx.lineWidth=S*0.055;ctx.lineCap='round';ctx.lineJoin='round';
+  for(const st of P.strokes){if(st.length<2)continue;
+    ctx.beginPath();ctx.moveTo(st[0].x,st[0].y);
+    for(let i=1;i<st.length;i++){const m={x:(st[i-1].x+st[i].x)/2,y:(st[i-1].y+st[i].y)/2};
+      ctx.quadraticCurveTo(st[i-1].x,st[i-1].y,m.x,m.y);}
+    ctx.lineTo(st[st.length-1].x,st[st.length-1].y);ctx.stroke();}}
+
+/* ================== СПИСОК СЛОВ ================== */
+function openWords(){
+  $('#wordsList').innerHTML=WORDS.map((w,i)=>`
+    <div class="wrow">
+      <button class="mini-say" onclick="say('${w.h}')">🔊</button>
+      <div class="hz">${w.h}</div><div class="py">${w.p}</div><div class="ru">${w.r}</div>
+      <button class="know ${db.known.includes(i)?'on':''}" onclick="toggleKnown(${i},this)">${db.known.includes(i)?'✓ знаю':'знаю'}</button>
+    </div>`).join('');
+  $('#wordsOverlay').classList.add('open');}
+function closeWords(){$('#wordsOverlay').classList.remove('open')}
+function toggleKnown(i,btn){
+  const k=db.known.indexOf(i);
+  if(k>=0){db.known.splice(k,1);btn.classList.remove('on');btn.textContent='знаю'}
+  else{db.known.push(i);btn.classList.add('on');btn.textContent='✓ знаю';sndOk();}
+  save();renderHeader();}
+$('#wordsOverlay').addEventListener('click',e=>{if(e.target.id==='wordsOverlay')closeWords()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeWords()});
+
+showMenu();
+</script>
+</body>
+</html>
