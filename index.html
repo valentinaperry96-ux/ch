@@ -6,7 +6,6 @@
 <title>Словарный диктант · 汉语听写</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<!-- шрифты грузятся асинхронно и НЕ блокируют страницу -->
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
@@ -355,7 +354,7 @@ function derangeAgainst(arr,against){
   return out;}
 const app=$('#app');
 
-/* диагностика: если на телефоне что-то пойдёт не так — покажем ошибку на экране */
+/* диагностика: если что-то пойдёт не так — покажем ошибку на экране */
 window.addEventListener('error',e=>{
   let d=document.getElementById('jserr');
   if(!d){d=document.createElement('div');d.id='jserr';document.body.appendChild(d);}
@@ -380,16 +379,21 @@ const sndOk=()=>{tone(660,.12);tone(880,.16,'sine',.12,.1)};
 const sndBad=()=>{tone(160,.22,'square',.07)};
 const sndClick=()=>{tone(1200,.04,'sine',.05)};
 
+/* ---------- озвучка: ВСЕ обращения защищены ---------- */
+const TTS_OK=('speechSynthesis' in window);
 let zhVoice=null;
-function pickVoice(){const vs=speechSynthesis.getVoices();
-  zhVoice=vs.find(v=>/zh[-_]CN/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;}
-if('speechSynthesis' in window){pickVoice();speechSynthesis.onvoiceschanged=pickVoice;}
+function pickVoice(){try{const vs=window.speechSynthesis.getVoices();
+  zhVoice=vs.find(v=>/zh[-_]CN/i.test(v.lang))||vs.find(v=>/^zh/i.test(v.lang))||null;}catch(e){}}
+if(TTS_OK){pickVoice();try{window.speechSynthesis.onvoiceschanged=pickVoice;}catch(e){}}
+function stopSay(){try{if(TTS_OK)window.speechSynthesis.cancel();}catch(e){}}
 function say(text,rate=.82){
-  if(!('speechSynthesis' in window)){toast('Озвучка не поддерживается этим браузером 😕');return false;}
-  speechSynthesis.cancel();
-  const u=new SpeechSynthesisUtterance(text);
-  u.lang='zh-CN'; if(zhVoice)u.voice=zhVoice; u.rate=rate;
-  speechSynthesis.speak(u); return true;}
+  if(!TTS_OK){toast('Озвучка не поддерживается этим браузером 😕');return false;}
+  try{
+    window.speechSynthesis.cancel();
+    const u=new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; if(zhVoice)u.voice=zhVoice; u.rate=rate;
+    window.speechSynthesis.speak(u); return true;
+  }catch(e){return false;}}
 
 let toastT=null;
 function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('show');
@@ -421,7 +425,7 @@ function editExam(){const v=prompt('Дата диктанта (ГГГГ-ММ-Д�
 
 /* ================== МЕНЮ ================== */
 function showMenu(){
-  speechSynthesis&&speechSynthesis.cancel();
+  stopSay();
   const m=db.modes;
   const rec={
     match:m.match.played?`сыграно раундов: ${m.match.played}${m.match.best!=null?' · ошибок: '+m.match.best:''}`:'',
@@ -449,7 +453,7 @@ function showMenu(){
   <div class="tools">
     <button class="btn" onclick="openWords()">📖 Все слова (26)</button>
     <button class="btn small" onclick="resetAll()">Сбросить прогресс</button>
-    ${('speechSynthesis' in window)?'':'<span class="chip">⚠ озвучка недоступна</span>'}
+    ${TTS_OK?'':'<span class="chip">⚠ озвучка недоступна — задания работают без звука</span>'}
   </div>`;
   renderHeader();}
 function resetAll(){if(confirm('Точно сбросить весь прогресс?')){localStorage.removeItem(LS);location.reload()}}
@@ -457,7 +461,7 @@ function resetAll(){if(confirm('Точно сбросить весь прогр�
 /* ================== ПАРЫ ================== */
 let M={};
 function showMatch(){
-  speechSynthesis&&speechSynthesis.cancel();
+  stopSay();
   const items=shuffle([...WORDS.keys()]);
   const rounds=[];let i=0;
   while(i<items.length){let take=6;const left=items.length-i;
@@ -526,7 +530,6 @@ function mRoundDone(){
 /* ================== ДИКТАНТ (рукописный) ================== */
 let D={};
 let HW_OK=null, HW_LOAD=null;
-/* библиотека подгружается НЕБЛОКИРУЮЩЕ: страница работает и без неё */
 function loadHWScript(){
   if(HW_LOAD)return HW_LOAD;
   HW_LOAD=new Promise(res=>{
@@ -557,7 +560,7 @@ async function ensureHW(){
   return HW_OK;
 }
 async function showDict(onlyErrors){
-  speechSynthesis&&speechSynthesis.cancel();
+  stopSay();
   const q=onlyErrors&&D.errors&&D.errors.size?shuffle([...D.errors]):shuffle([...WORDS.keys()]);
   D={q,i:0,right:0,streak:0,best:0,errors:new Set(),mode:'pinyin',
      outline:db.outline===true,
@@ -566,7 +569,7 @@ async function showDict(onlyErrors){
   await ensureHW();
   if(!HW_OK)toast('Данные черт недоступны — включена проверка по контуру');
   renderDictFrame();renderDictQ();}
-function dictMode(m){D.mode=m;if(D.mode==='audio'&&!('speechSynthesis' in window)){toast('Озвучка недоступна — включаю пиньинь');D.mode='pinyin'}renderDictFrame();renderDictQ();}
+function dictMode(m){D.mode=m;if(D.mode==='audio'&&!TTS_OK){toast('Озвучка недоступна — включаю пиньинь');D.mode='pinyin'}renderDictFrame();renderDictQ();}
 function renderDictFrame(){
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
@@ -586,7 +589,7 @@ function renderDictQ(){
   const w=WORDS[D.q[D.i]];
   D.answered=false;D.counted=false;D.wordMistakes=0;D.totalMistakes=0;
   const chars=[...w.h];
-  const showPy=D.mode==='pinyin', showRu=D.mode==='ru', audio=D.mode==='audio';
+  const showPy=D.mode==='pinyin', showRu=D.mode==='ru', audio=D.mode==='audio'&&TTS_OK;
   $('#dPanel').innerHTML=`
   <div class="dict-prompt">
     ${audio?`<button class="say-btn" id="dSay" onclick="sayDictWord(this)">🔊</button>
@@ -751,7 +754,6 @@ function fbDraw(cell){const{ctx,S,ch}=cell;
   for(const st of cell.strokes){if(st.length<2)continue;
     ctx.beginPath();ctx.moveTo(st[0].x,st[0].y);
     for(let i=1;i<st.length;i++)ctx.lineTo(st[i].x,st[i].y);ctx.stroke();}}
-/* когда шрифты докачались — перерисовать контуры диктанта */
 if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{if(D&&D.fbc)D.fbc.forEach(fbDraw);}catch(e){}});
 function fbClear(){if(D.fbc)D.fbc.forEach(c=>{c.strokes=[];fbDraw(c)});
   document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});}
@@ -791,7 +793,7 @@ function fbCheck(){
 /* ================== ПОДСТАНОВКА ================== */
 let C={};
 function showCloze(){
-  speechSynthesis&&speechSynthesis.cancel();
+  stopSay();
   C={q:shuffle(SENTENCES.map((s,i)=>i)),i:0,ok:0,solved:false,firstTry:true};
   renderClozeFrame();renderClozeQ();}
 function renderClozeFrame(){
@@ -840,7 +842,7 @@ function clozeFinish(){
 /* ================== НА СЛУХ ================== */
 let L={};
 function showListen(){
-  speechSynthesis&&speechSynthesis.cancel();
+  stopSay();
   L={q:shuffle([...WORDS.keys()]),i:0,ok:0,firstTry:true};
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
@@ -852,16 +854,15 @@ function showListen(){
 function renderListenQ(){
   const w=WORDS[L.q[L.i]];L.firstTry=true;
   const opts=shuffle([w.h,...shuffle(WORDS.filter(x=>x.h!==w.h)).slice(0,3).map(x=>x.h)]);
-  const noTTS=!('speechSynthesis' in window);
   $('#lPanel').innerHTML=`
     <div class="dict-prompt">
-      ${noTTS?`<div class="dict-pinyin">${w.p}</div><div class="dict-ru">озвучка недоступна — читаем пиньинь</div>`
+      ${!TTS_OK?`<div class="dict-pinyin">${w.p}</div><div class="dict-ru">озвучка недоступна — читаем пиньинь</div>`
       :`<button class="say-btn" id="lSay" onclick="listenPlay(this)">🔊</button>
         <div class="dict-ru">слушай и выбери иероглиф · <button class="btn small" onclick="listenPlay(null,0.55)">🐢 медленнее</button></div>`}
     </div>
     <div class="listen-tiles">${opts.map(o=>`<button class="opt" onclick="listenPick(this,'${o}')">${o}</button>`).join('')}</div>
     <div id="lFb"></div>`;
-  if(!noTTS)setTimeout(()=>listenPlay($('#lSay')),400);}
+  if(TTS_OK)setTimeout(()=>listenPlay($('#lSay')),400);}
 function listenPlay(btn,rate){const w=WORDS[L.q[L.i]];if(say(w.h,rate||.8)&&btn){btn.classList.add('speaking');setTimeout(()=>btn.classList.remove('speaking'),1200)}}
 function listenPick(btn,ch){
   const w=WORDS[L.q[L.i]];
@@ -889,7 +890,7 @@ function listenNext(){
 /* ================== ПРОПИСИ ================== */
 let W={i:0,ghost:true,pads:[]};
 function showWrite(){
-  speechSynthesis&&speechSynthesis.cancel();
+  stopSay();
   W.i=Math.floor(Math.random()*WORDS.length);W.ghost=true;
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
