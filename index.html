@@ -63,7 +63,7 @@ body{
 
 .ticker{background:var(--red); color:#FBEFDB; overflow:hidden; border-block:3px solid var(--ink);
   margin:6px 0 30px; transform:rotate(-.4deg) scale(1.01)}
-.ticker-track{display:flex; width:max-content; animation:tick 70s linear infinite}
+.ticker-track{display:flex; width:max-content; animation:tick 80s linear infinite}
 .ticker:hover .ticker-track{animation-play-state:paused}
 .ticker span{padding:9px 0; font-family:var(--cjk); font-weight:700; font-size:17px; letter-spacing:1px; white-space:nowrap}
 .ticker i{font-style:normal; color:var(--gold); padding:0 14px}
@@ -136,7 +136,9 @@ body{
   padding:14px 10px; text-align:center; font-family:var(--body)}
 .mcard:hover{transform:translateY(-3px)}
 .mcard.hz{font-family:var(--cjk); font-weight:700; font-size:34px; background:#FFF9EC; letter-spacing:2px}
+.mcard.hz.long{font-size:19px; letter-spacing:1px; padding:18px 6px}
 .mcard.py{font-weight:800; font-size:18px; letter-spacing:.3px}
+.mcard.py.long{font-size:13.5px}
 .mcard.ru{font-weight:600; font-size:14px; line-height:1.35}
 .mcard.sel{background:var(--red); color:#FFF6E6; transform:translateY(-3px)}
 .mcard.ok{background:var(--jade); border-color:var(--jade); color:#F2FAF4; cursor:default;
@@ -147,7 +149,7 @@ body{
 
 /* ---------- диктант ---------- */
 .dict-prompt{text-align:center; margin-bottom:20px}
-.dict-pinyin{font-weight:900; font-size:clamp(30px,4.5vw,44px); letter-spacing:.5px}
+.dict-pinyin{font-weight:900; font-size:clamp(26px,4.5vw,44px); letter-spacing:.5px}
 .dict-ru{color:var(--ink2); font-weight:600; margin-top:4px; font-size:16px}
 .hiddenru{color:transparent; user-select:none}
 .say-btn{width:64px; height:64px; border-radius:50%; border:2.5px solid var(--ink); background:var(--red);
@@ -179,6 +181,7 @@ body{
 .opt{width:84px; height:84px; border:2.5px solid var(--ink); border-radius:12px; background:#fff;
   font-family:var(--cjk); font-weight:700; font-size:38px; cursor:pointer; box-shadow:3px 3px 0 rgba(38,32,25,.85);
   transition:transform .12s; display:grid; place-items:center}
+.opt.long{width:auto; min-width:84px; height:64px; padding:4px 14px; font-size:20px; letter-spacing:1px}
 .opt:hover{transform:translateY(-4px); background:#FFF9EC}
 .opt.right{background:var(--jade); border-color:var(--jade); color:#fff; animation:okpop .4s}
 .opt.wrong{background:#F6D9D2; animation:shake .4s; opacity:.55; cursor:default}
@@ -207,7 +210,7 @@ body{
 .overlay{position:fixed; inset:0; background:rgba(38,32,25,.55); z-index:50; display:none;
   align-items:flex-start; justify-content:center; padding:30px 16px; overflow:auto}
 .overlay.open{display:flex}
-.modal{background:var(--paper); border:3px solid var(--ink); border-radius:14px; max-width:660px; width:100%;
+.modal{background:var(--paper); border:3px solid var(--ink); border-radius:14px; max-width:680px; width:100%;
   box-shadow:8px 8px 0 rgba(38,32,25,.6); animation:fadeUp .25s both}
 .modal-head{display:flex; align-items:center; gap:12px; padding:16px 20px; border-bottom:2.5px solid var(--ink);
   background:var(--red); color:#FFF6E6; border-radius:10px 10px 0 0}
@@ -217,7 +220,8 @@ body{
 .wrow{display:flex; align-items:center; gap:14px; padding:9px 20px; border-bottom:1px dashed var(--line)}
 .wrow:hover{background:#FFF9EC}
 .wrow .hz{font-family:var(--cjk); font-weight:700; font-size:26px; width:96px; flex:none; letter-spacing:2px}
-.wrow .py{font-weight:800; width:110px; flex:none; color:var(--red-d)}
+.wrow .hz.long{font-size:16px; width:150px; letter-spacing:1px}
+.wrow .py{font-weight:800; width:150px; flex:none; color:var(--red-d); font-size:13px}
 .wrow .ru{flex:1; font-size:13.5px; font-weight:500; color:var(--ink2)}
 .wrow .know{border:2px solid var(--ink); background:#fff; border-radius:999px; font-size:11.5px;
   font-weight:800; padding:4px 10px; cursor:pointer; flex:none}
@@ -241,6 +245,7 @@ footer b{color:var(--red)}
   .l-num{width:46px; font-size:32px; padding-right:10px}
   .match-grid{gap:10px 12px}
   .mcard.hz{font-size:26px}
+  .mcard.hz.long{font-size:15px}
   .mcard.ru{font-size:12.5px}
   .panel{padding:18px}
 }
@@ -260,10 +265,10 @@ footer b{color:var(--red)}
     <div class="head-t">
       <div class="kicker">Тренажёр · 汉语听写</div>
       <h1>Словарный <em>диктант</em></h1>
-      <div class="head-sub">26 слов · темы «在朋友家做客» и «在路上»</div>
+      <div class="head-sub">30 слов и фраз · темы «在朋友家做客» и «在路上»</div>
     </div>
     <div class="chips">
-      <div class="chip">Выучено <b id="chipKnown">0</b>/26</div>
+      <div class="chip">Выучено <b id="chipKnown">0</b><span id="chipTotal">/30</span></div>
       <div class="chip">Точность <b id="chipAcc">—</b></div>
       <div class="chip countdown" id="chipDays">…</div>
     </div>
@@ -278,7 +283,7 @@ footer b{color:var(--red)}
 
 <div class="overlay" id="wordsOverlay">
   <div class="modal">
-    <div class="modal-head"><h3>Все 26 слов · 生词表</h3><button onclick="closeWords()">✕</button></div>
+    <div class="modal-head"><h3 id="wordsTitle">Все слова · 生词表</h3><button onclick="closeWords()">✕</button></div>
     <div id="wordsList"></div>
   </div>
 </div>
@@ -313,7 +318,11 @@ const WORDS=[
 {h:'饿',p:'è',r:'голодный; быть голодным'},
 {h:'吃',p:'chī',r:'есть, кушать'},
 {h:'会',p:'huì',r:'уметь, мочь'},
-{h:'试',p:'shì',r:'пробовать; примерять'}];
+{h:'试',p:'shì',r:'пробовать; примерять'},
+{h:'客人',p:'kèrén',r:'гость'},
+{h:'就是',p:'jiùshì',r:'именно, как раз; же'},
+{h:'一点儿心意请收下',p:'yìdiǎnr xīnyì qǐng shōuxià',r:'примите этот небольшой знак внимания',ph:1},
+{h:'什么都行',p:'shénme dōu xíng',r:'что угодно, всё подойдёт',ph:1}];
 
 const SENTENCES=[
 {h:'做客',s:'星期六我去朋友家____。',t:'В субботу я иду в гости к другу.'},
@@ -341,7 +350,9 @@ const SENTENCES=[
 {h:'饿',s:'我____了，先去吃饭吧！',t:'Я проголодался, давай сначала поедим!'},
 {h:'吃',s:'你____过晚饭了吗？',t:'Ты уже поужинал?'},
 {h:'会',s:'我____说一点儿汉语。',t:'Я немного умею говорить по-китайски.'},
-{h:'试',s:'这件衣服很漂亮，你____试吧。',t:'Эта одежда очень красивая, примерь её.'}];
+{h:'试',s:'这件衣服很漂亮，你____试吧。',t:'Эта одежда очень красивая, примерь её.'},
+{h:'客人',s:'____来了，快请进！',t:'Пришли гости — скорее приглашай войти!'},
+{h:'就是',s:'这____我的汉语书。',t:'Это как раз мой учебник китайского.'}];
 
 /* ================== УТИЛИТЫ ================== */
 const $=s=>document.querySelector(s);
@@ -353,8 +364,9 @@ function derangeAgainst(arr,against){
   while(tries<200&&out.some((v,i)=>v===against[i]));
   return out;}
 const app=$('#app');
+const longCls=h=>h.length>3?' long':'';
+const cellSize=n=>n>4?104:152;
 
-/* диагностика: если что-то пойдёт не так — покажем ошибку на экране */
 window.addEventListener('error',e=>{
   let d=document.getElementById('jserr');
   if(!d){d=document.createElement('div');d.id='jserr';document.body.appendChild(d);}
@@ -379,7 +391,6 @@ const sndOk=()=>{tone(660,.12);tone(880,.16,'sine',.12,.1)};
 const sndBad=()=>{tone(160,.22,'square',.07)};
 const sndClick=()=>{tone(1200,.04,'sine',.05)};
 
-/* ---------- озвучка: ВСЕ обращения защищены ---------- */
 const TTS_OK=('speechSynthesis' in window);
 let zhVoice=null;
 function pickVoice(){try{const vs=window.speechSynthesis.getVoices();
@@ -409,6 +420,7 @@ function confetti(n=28){const cols=['#C63A21','#E3A62E','#2E7D5B','#262019','#FF
 
 function renderHeader(){
   $('#chipKnown').textContent=db.known.length;
+  $('#chipTotal').textContent='/'+WORDS.length;
   $('#chipAcc').textContent=db.acc.all?Math.round(db.acc.ok/db.acc.all*100)+'%':'—';
   const c=$('#chipDays');
   if(db.exam){const d=Math.ceil((new Date(db.exam+'T00:00:00')-new Date())/864e5);
@@ -431,14 +443,14 @@ function showMenu(){
     match:m.match.played?`сыграно раундов: ${m.match.played}${m.match.best!=null?' · ошибок: '+m.match.best:''}`:'',
     dict:m.dict.played?`лучшая серия: ${m.dict.best}`:'',
     cloze:m.cloze.best!=null?`лучший результат: ${m.cloze.best}/${SENTENCES.length}`:'',
-    listen:m.listen.best!=null?`лучший результат: ${m.listen.best}/26`:'',
+    listen:m.listen.best!=null?`лучший результат: ${m.listen.best}/${WORDS.length}`:'',
     write:''};
   const key=t=>t==='Соедини пары'?'match':t==='Диктант ✍️'?'dict':t.startsWith('Вставь')?'cloze':t.startsWith('На')?'listen':'write';
   app.innerHTML=`
   <h2 class="menu-title">Выбери упражнение <span>加油!</span></h2>
   <div class="lessons">
     ${[
-      ['一','Соедини пары','Иероглиф ↔ пиньинь и перевод. 5 раундов по всем словам.','showMatch()'],
+      ['一','Соедини пары','Иероглиф ↔ пиньинь и перевод. Раунды по всем словам и фразам.','showMatch()'],
       ['二','Диктант ✍️','Слышишь или видишь слово — пишешь иероглифы от руки, проверка по чертам.','showDict()'],
       ['三','Вставь слово','Выбери нужный иероглиф в предложение.','showCloze()'],
       ['四','На слух','Слушаешь слово и узнаёшь его среди четырёх.','showListen()'],
@@ -451,7 +463,7 @@ function showMenu(){
     </button>`).join('')}
   </div>
   <div class="tools">
-    <button class="btn" onclick="openWords()">📖 Все слова (26)</button>
+    <button class="btn" onclick="openWords()">📖 Все слова (${WORDS.length})</button>
     <button class="btn small" onclick="resetAll()">Сбросить прогресс</button>
     ${TTS_OK?'':'<span class="chip">⚠ озвучка недоступна — задания работают без звука</span>'}
   </div>`;
@@ -490,9 +502,9 @@ function renderMRound(){
   const right=derangeAgainst(idxs,left);
   $('#mArea').innerHTML=`<div class="match-grid">
     <div style="display:flex;flex-direction:column;gap:12px">
-      ${left.map(i=>`<div class="mcard hz" data-side="L" data-i="${i}">${WORDS[i].h}</div>`).join('')}</div>
+      ${left.map(i=>`<div class="mcard hz${longCls(WORDS[i].h)}" data-side="L" data-i="${i}">${WORDS[i].h}</div>`).join('')}</div>
     <div style="display:flex;flex-direction:column;gap:12px">
-      ${right.map(i=>`<div class="mcard ${M.type==='py'?'py':'ru'}" data-side="R" data-i="${i}">${M.type==='py'?WORDS[i].p:WORDS[i].r}</div>`).join('')}</div>
+      ${right.map(i=>`<div class="mcard ${M.type==='py'?'py':'ru'}${M.type==='py'?longCls(WORDS[i].p):''}" data-side="R" data-i="${i}">${M.type==='py'?WORDS[i].p:WORDS[i].r}</div>`).join('')}</div>
   </div>`;
   $('#mArea').querySelectorAll('.mcard').forEach(c=>c.onclick=()=>mPick(c));}
 function mPick(c){
@@ -589,6 +601,7 @@ function renderDictQ(){
   const w=WORDS[D.q[D.i]];
   D.answered=false;D.counted=false;D.wordMistakes=0;D.totalMistakes=0;
   const chars=[...w.h];
+  const cs=cellSize(chars.length);
   const showPy=D.mode==='pinyin', showRu=D.mode==='ru', audio=D.mode==='audio'&&TTS_OK;
   $('#dPanel').innerHTML=`
   <div class="dict-prompt">
@@ -599,8 +612,8 @@ function renderDictQ(){
     ${!showRu&&!audio?`<div class="dict-ru hiddenru" id="dRu">${w.r}</div>
       <button class="btn small" onclick="const e=document.getElementById('dRu');if(e){e.classList.remove('hiddenru');this.remove()}">👀 подсмотреть перевод</button>`:''}
   </div>
-  <div class="cells" style="margin-bottom:10px">
-    ${chars.map((c,i)=>`<div class="tzg dcell" style="width:152px;height:152px"><div class="hw" id="hw${i}"></div><div class="mark" id="mk${i}"></div></div>`).join('')}
+  <div class="cells" style="margin-bottom:10px;gap:${cs>120?12:8}px">
+    ${chars.map((c,i)=>`<div class="tzg dcell" style="width:${cs}px;height:${cs}px"><div class="hw" id="hw${i}"></div><div class="mark" id="mk${i}"></div></div>`).join('')}
   </div>
   <div class="dict-ru" id="dLive" style="text-align:center;min-height:22px">
     ${HW_OK?'пиши в клетках от руки — каждая черта проверяется ✍️':'нарисуй иероглифы и нажми «Проверить»'}
@@ -622,11 +635,12 @@ function cleanupWriters(){
 function startCells(chars){
   cleanupWriters();
   document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});
+  const S=cellSize(chars.length)-4;
   if(HW_OK){
     D.writers=chars.map((ch,i)=>{
       const el=$('#hw'+i);el.innerHTML='';
       return HanziWriter.create(el,ch,{
-        width:148,height:148,padding:5,
+        width:S,height:S,padding:5,
         showCharacter:false,showOutline:D.outline,
         strokeColor:'#262019',outlineColor:'#E7DFC9',
         drawingColor:'#C63A21',highlightColor:'#E3A62E',
@@ -641,7 +655,7 @@ function startCells(chars){
           const mk=$('#mk'+i);if(mk)mk.textContent='✓';
           if(D.remaining===0)setTimeout(hwVerdict,350);}});});
   }else{
-    D.fbc=chars.map((ch,i)=>fbInit($('#hw'+i),ch));}}
+    D.fbc=chars.map((ch,i)=>fbInit($('#hw'+i),ch,S));}}
 function hwVerdict(){
   if(D.answered)return;D.answered=true;
   if(D.totalMistakes===0)dictSuccess();else dictFail(D.totalMistakes);}
@@ -653,7 +667,7 @@ function dictSuccess(){
   const lv=$('#dLive');if(lv)lv.innerHTML=`<b style="color:var(--jade)">Все черты написаны верно! 太好了！</b>`;
   $('#dRight').textContent=D.right;$('#dStreak').textContent=D.streak;
   $('#dFb').innerHTML=`<div class="stamp good">对</div>
-    <div><div style="font-family:var(--cjk);font-weight:700;font-size:24px">${w.h} · ${w.p}</div>
+    <div><div style="font-family:var(--cjk);font-weight:700;font-size:22px">${w.h} · ${w.p}</div>
     <div class="dict-ru">${w.r}</div>
     <div style="margin-top:10px"><button class="btn small" onclick="say('${w.h}')">🔊</button>
     <button class="btn primary small" onclick="dictNext()">Дальше →</button></div></div>`;}
@@ -686,7 +700,7 @@ function dictReveal(){
     ctx.font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(ch,S/2,S/2+S*0.03);});
   $('#dFb').innerHTML=`<div class="stamp good" style="color:var(--gold)">记</div>
-    <div><div style="font-family:var(--cjk);font-weight:700;font-size:24px">${w.h} · ${w.p}</div>
+    <div><div style="font-family:var(--cjk);font-weight:700;font-size:22px">${w.h} · ${w.p}</div>
     <div class="dict-ru">${w.r} — запомни и потренируй в «Прописях»</div>
     <div style="margin-top:10px"><button class="btn small" onclick="say('${w.h}')">🔊</button>
     <button class="btn primary small" onclick="dictNext()">Запомнила →</button></div></div>`;}
@@ -718,16 +732,17 @@ function dictFinish(){
     <h3>${pct>=90?'太好了！Отлично!':pct>=70?'不错！Хорошо!':pct>=50?'加油！Неплохо!':'别灰心！Повторим ещё!'}</h3>
     <p class="sub">Точность ${pct}% · лучшая серия ${D.best}</p>
     ${errs.length?`<p style="font-weight:700;margin-bottom:8px">Слова с ошибками — повтори их:</p>
-      <div class="err-chips">${errs.map(w=>`<span class="chip" onclick="say('${w.h}')" title="${w.p}">${w.h} ${w.p}</span>`).join('')}</div>
+      <div class="err-chips">${errs.map(w=>`<span class="chip" onclick="say('${w.h}')" title="${w.p}">${w.h}</span>`).join('')}</div>
       <div style="margin-top:18px"><button class="btn gold" onclick="showDict(true)">🔁 Повторить ошибки (${errs.length})</button></div>`:''}
     <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
       <button class="btn primary" onclick="showDict()">Заново</button>
       <button class="btn" onclick="showMenu()">В меню</button></div></div>`;}
 
 /* ---- запасная проверка: сравнение с контуром ---- */
-function fbInit(el,ch){
+function fbInit(el,ch,S){
+  S=S||148;
   el.innerHTML='';
-  const S=148,dpr=window.devicePixelRatio||1;
+  const dpr=window.devicePixelRatio||1;
   const cv=document.createElement('canvas');
   cv.width=S*dpr;cv.height=S*dpr;cv.style.width=S+'px';cv.style.height=S+'px';
   cv.style.touchAction='none';cv.style.cursor='crosshair';
@@ -750,7 +765,7 @@ function fbDraw(cell){const{ctx,S,ch}=cell;
     ctx.lineWidth=1.6;
     ctx.strokeStyle='rgba(38,32,25,.32)';
     ctx.strokeText(ch,S/2,S/2+S*0.03);}
-  ctx.strokeStyle='#93250F';ctx.lineWidth=10;ctx.lineCap='round';ctx.lineJoin='round';
+  ctx.strokeStyle='#93250F';ctx.lineWidth=Math.max(7,S*0.07);ctx.lineCap='round';ctx.lineJoin='round';
   for(const st of cell.strokes){if(st.length<2)continue;
     ctx.beginPath();ctx.moveTo(st[0].x,st[0].y);
     for(let i=1;i<st.length;i++)ctx.lineTo(st[i].x,st[i].y);ctx.stroke();}}
@@ -769,7 +784,7 @@ function fbGrade(cell){
   const total=fbCountInk(t);
   const c1=mk(),x1=c1.getContext('2d');
   x1.drawImage(t,0,0);x1.globalCompositeOperation='destination-out';
-  x1.lineWidth=16;x1.lineCap='round';x1.lineJoin='round';x1.strokeStyle='#000';
+  x1.lineWidth=Math.max(10,S*0.11);x1.lineCap='round';x1.lineJoin='round';x1.strokeStyle='#000';
   for(const st of cell.strokes){if(st.length<2)continue;
     x1.beginPath();x1.moveTo(st[0].x,st[0].y);
     for(let i=1;i<st.length;i++)x1.lineTo(st[i].x,st[i].y);x1.stroke();}
@@ -778,7 +793,8 @@ function fbGrade(cell){
   x2.drawImage(cell.cv,0,0,cell.cv.width,cell.cv.height,0,0,S,S);
   x2.globalCompositeOperation='destination-out';x2.fillStyle='#000';
   x2.font=tc.font;x2.textAlign='center';x2.textBaseline='middle';
-  [[0,0],[6,0],[-6,0],[0,6],[0,-6],[4,4],[-4,-4],[4,-4],[-4,4]]
+  const off=Math.round(S*0.04);
+  [[0,0],[off,0],[-off,0],[0,off],[0,-off],[off,off],[-off,-off],[off,-off],[-off,off]]
     .forEach(([dx,dy])=>x2.fillText(cell.ch,S/2+dx,S/2+S*0.03+dy));
   const uT=fbCountInk(cell.cv),precision=uT?1-fbCountInk(c2)/uT:0;
   return coverage>=0.6&&precision>=0.5&&uT>60;}
@@ -806,12 +822,13 @@ function renderClozeFrame(){
 function renderClozeQ(){
   const q=SENTENCES[C.q[C.i]];
   C.solved=false;C.firstTry=true;
-  const others=shuffle(WORDS.filter(x=>x.h!==q.h)).slice(0,3).map(x=>x.h);
+  const pool=WORDS.filter(x=>!x.ph&&x.h!==q.h);
+  const others=shuffle(pool).slice(0,3).map(x=>x.h);
   const opts=shuffle([q.h,...others]);
   const [l,r]=q.s.split('____');
   $('#cPanel').innerHTML=`
     <div class="sentence">${l}<span class="blank" id="cBlank">？</span>${r}</div>
-    <div class="opts">${opts.map(o=>`<button class="opt" onclick="clozePick(this,'${o}')">${o}</button>`).join('')}</div>
+    <div class="opts">${opts.map(o=>`<button class="opt${longCls(o)}" onclick="clozePick(this,'${o}')">${o}</button>`).join('')}</div>
     <div id="cFb"></div>`;}
 function clozePick(btn,ch){
   if(C.solved)return;
@@ -832,9 +849,10 @@ function clozeNext(){
 function clozeFinish(){
   db.modes.cloze.played++;
   if(db.modes.cloze.best==null||C.ok>db.modes.cloze.best)db.modes.cloze.best=C.ok;save();
-  if(C.ok>=C.q.length*.8)confetti(60);
-  $('#cPanel').innerHTML=`<div class="final"><div class="big">${C.ok}/${C.q.length}</div>
-    <h3>${C.ok>=23?'太好了！':C.ok>=18?'不错！':'再来一次！'}</h3>
+  const tot=SENTENCES.length;
+  if(C.ok>=tot*.8)confetti(60);
+  $('#cPanel').innerHTML=`<div class="final"><div class="big">${C.ok}/${tot}</div>
+    <h3>${C.ok>=tot*.85?'太好了！':C.ok>=tot*.65?'不错！':'再来一次！'}</h3>
     <p class="sub">предложений собрано с первой попытки</p>
     <button class="btn primary" onclick="showCloze()">Ещё раз</button>
     <button class="btn" onclick="showMenu()">В меню</button></div>`;}
@@ -847,7 +865,7 @@ function showListen(){
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
     <h2><i>四</i>На слух</h2><div class="spacer"></div></div>
-  <div class="hud"><span class="pill">Слово <b id="lCur">1</b>/26</span>
+  <div class="hud"><span class="pill">Слово <b id="lCur">1</b>/${WORDS.length}</span>
     <span class="pill">Узнано: <b id="lOk">0</b></span></div>
   <div class="panel" id="lPanel"></div>`;
   renderListenQ();}
@@ -860,7 +878,7 @@ function renderListenQ(){
       :`<button class="say-btn" id="lSay" onclick="listenPlay(this)">🔊</button>
         <div class="dict-ru">слушай и выбери иероглиф · <button class="btn small" onclick="listenPlay(null,0.55)">🐢 медленнее</button></div>`}
     </div>
-    <div class="listen-tiles">${opts.map(o=>`<button class="opt" onclick="listenPick(this,'${o}')">${o}</button>`).join('')}</div>
+    <div class="listen-tiles">${opts.map(o=>`<button class="opt${longCls(o)}" onclick="listenPick(this,'${o}')">${o}</button>`).join('')}</div>
     <div id="lFb"></div>`;
   if(TTS_OK)setTimeout(()=>listenPlay($('#lSay')),400);}
 function listenPlay(btn,rate){const w=WORDS[L.q[L.i]];if(say(w.h,rate||.8)&&btn){btn.classList.add('speaking');setTimeout(()=>btn.classList.remove('speaking'),1200)}}
@@ -876,12 +894,13 @@ function listenPick(btn,ch){
   }else{L.firstTry=false;btn.classList.add('wrong');btn.disabled=true;sndBad();record(false);}}
 function listenNext(){
   L.i++;
+  const tot=WORDS.length;
   if(L.i>=L.q.length){
     db.modes.listen.played++;
     if(db.modes.listen.best==null||L.ok>db.modes.listen.best)db.modes.listen.best=L.ok;save();
-    if(L.ok>=21)confetti(60);
-    $('#lPanel').innerHTML=`<div class="final"><div class="big">${L.ok}/26</div>
-      <h3>${L.ok>=23?'太好了！':L.ok>=18?'不错！':'再试一次！'}</h3>
+    if(L.ok>=tot*.8)confetti(60);
+    $('#lPanel').innerHTML=`<div class="final"><div class="big">${L.ok}/${tot}</div>
+      <h3>${L.ok>=tot*.85?'太好了！':L.ok>=tot*.65?'不错！':'再试一次！'}</h3>
       <p class="sub">слов узнано на слух с первой попытки</p>
       <button class="btn primary" onclick="showListen()">Ещё раз</button>
       <button class="btn" onclick="showMenu()">В меню</button></div>`;return;}
@@ -919,12 +938,13 @@ function wGhost(){W.ghost=!W.ghost;$('#wGhostBtn').textContent='образец: 
 function renderPads(){
   const w=WORDS[W.i];
   $('#pads').innerHTML=[...w.h].map((ch,i)=>`<div class="pad"><canvas id="cv${i}" width="0" height="0"></canvas><div class="padch">${ch}</div></div>`).join('');
-  $('#wInfo').innerHTML=`<div class="w">${w.h}</div><div class="p">${w.p}</div><div class="r">${w.r}</div>
+  $('#wInfo').innerHTML=`<div class="w" style="font-size:${w.h.length>4?26:36}px">${w.h}</div><div class="p">${w.p}</div><div class="r">${w.r}</div>
     <button class="btn small" style="margin-top:8px" onclick="wSay()">🔊</button>`;
   W.pads=[...w.h].map((ch,i)=>initPad($('#cv'+i),ch));
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>W.pads.forEach(p=>drawPad(p)));}
 function initPad(cv,ch){
-  const S=Math.min(230,Math.max(150,(window.innerWidth-90)/(WORDS[W.i].h.length+0.5)));
+  const n=WORDS[W.i].h.length;
+  const S=Math.min(230,Math.max(110,(window.innerWidth-70)/(n+0.6)));
   const dpr=window.devicePixelRatio||1;
   cv.width=S*dpr;cv.height=S*dpr;cv.style.width=S+'px';cv.style.height=S+'px';
   const ctx=cv.getContext('2d');ctx.setTransform(dpr,0,0,dpr,0,0);
@@ -956,10 +976,11 @@ function drawPad(P){
 
 /* ================== СПИСОК СЛОВ ================== */
 function openWords(){
+  $('#wordsTitle').textContent=`Все ${WORDS.length} слов · 生词表`;
   $('#wordsList').innerHTML=WORDS.map((w,i)=>`
     <div class="wrow">
       <button class="mini-say" onclick="say('${w.h}')">🔊</button>
-      <div class="hz">${w.h}</div><div class="py">${w.p}</div><div class="ru">${w.r}</div>
+      <div class="hz${longCls(w.h)}">${w.h}</div><div class="py">${w.p}</div><div class="ru">${w.r}</div>
       <button class="know ${db.known.includes(i)?'on':''}" onclick="toggleKnown(${i},this)">${db.known.includes(i)?'✓ знаю':'знаю'}</button>
     </div>`).join('');
   $('#wordsOverlay').classList.add('open');}
