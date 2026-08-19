@@ -6,8 +6,9 @@
 <title>Словарный диктант · 汉语听写</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
+<!-- шрифты грузятся асинхронно и НЕ блокируют страницу -->
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --paper:#F6F0DF; --card:#FFFCF2; --ink:#262019; --ink2:#6B6152;
@@ -27,6 +28,8 @@ body{
   min-height:100vh; overflow-x:hidden;
 }
 ::selection{background:var(--gold); color:var(--ink)}
+#jserr{position:fixed; top:0; left:0; right:0; background:#93250F; color:#FFF6E6;
+  padding:9px 14px; font-size:12.5px; font-weight:700; z-index:999; box-shadow:0 2px 8px rgba(0,0,0,.3)}
 
 .amb{position:fixed; z-index:0; font-family:var(--cjk); font-weight:900; color:rgba(198,58,33,.07);
   pointer-events:none; user-select:none; line-height:1; animation:floaty ease-in-out infinite alternate}
@@ -352,6 +355,13 @@ function derangeAgainst(arr,against){
   return out;}
 const app=$('#app');
 
+/* диагностика: если на телефоне что-то пойдёт не так — покажем ошибку на экране */
+window.addEventListener('error',e=>{
+  let d=document.getElementById('jserr');
+  if(!d){d=document.createElement('div');d.id='jserr';document.body.appendChild(d);}
+  d.textContent='⚠ Ошибка на странице: '+e.message+' — пришлите скриншот';
+});
+
 const LS='hz_dict_v1';
 let db={known:[],outline:false,modes:{match:{played:0,best:null},dict:{played:0,best:0},cloze:{played:0,best:null},listen:{played:0,best:null}},acc:{ok:0,all:0},exam:'2026-08-26'};
 try{const raw=localStorage.getItem(LS); if(raw)db=Object.assign(db,JSON.parse(raw))}catch(e){}
@@ -515,17 +525,32 @@ function mRoundDone(){
 
 /* ================== ДИКТАНТ (рукописный) ================== */
 let D={};
-let HW_OK=null;
+let HW_OK=null, HW_LOAD=null;
+/* библиотека подгружается НЕБЛОКИРУЮЩЕ: страница работает и без неё */
+function loadHWScript(){
+  if(HW_LOAD)return HW_LOAD;
+  HW_LOAD=new Promise(res=>{
+    if(window.HanziWriter)return res(true);
+    const s=document.createElement('script');
+    const to=setTimeout(()=>res(false),6000);
+    s.onload=()=>{clearTimeout(to);res(true)};
+    s.onerror=()=>{clearTimeout(to);res(false)};
+    s.src='https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js';
+    document.head.appendChild(s);});
+  return HW_LOAD;}
 async function ensureHW(){
   if(HW_OK!==null)return HW_OK;
-  if(typeof HanziWriter==='undefined'){HW_OK=false;return false;}
+  const ok=await loadHWScript();
+  if(!ok||typeof HanziWriter==='undefined'){HW_OK=false;return false;}
   try{
     const div=document.createElement('div');
     div.style.cssText='position:fixed;left:-9999px;top:0;width:20px;height:20px;opacity:0';
     document.body.appendChild(div);
     const probe=HanziWriter.create(div,'做',{width:20,height:20,showCharacter:false});
     const chars=[...new Set(WORDS.map(w=>w.h).join(''))];
-    await Promise.all(chars.map(c=>probe.loadCharacterData(c)));
+    await Promise.race([
+      Promise.all(chars.map(c=>probe.loadCharacterData(c))),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))]);
     document.body.removeChild(div);
     HW_OK=true;
   }catch(e){HW_OK=false;}
@@ -600,7 +625,7 @@ function startCells(chars){
       return HanziWriter.create(el,ch,{
         width:148,height:148,padding:5,
         showCharacter:false,showOutline:D.outline,
-        strokeColor:'#262019',outlineColor:'#E7DFC9',  /* тонкая светлая обводка */
+        strokeColor:'#262019',outlineColor:'#E7DFC9',
         drawingColor:'#C63A21',highlightColor:'#E3A62E',
         strokeAnimationSpeed:1.2,delayBetweenStrokes:120,
         leniency:1.2,renderer:'canvas'});});
@@ -715,7 +740,6 @@ function fbInit(el,ch){
 function fbDraw(cell){const{ctx,S,ch}=cell;
   ctx.clearRect(0,0,S,S);
   if(D.outline){
-    /* тонкая обводка: лёгкий контур по краю иероглифа + едва заметная заливка */
     ctx.font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
     ctx.textAlign='center';ctx.textBaseline='middle';
     ctx.fillStyle='rgba(38,32,25,.05)';
@@ -727,6 +751,8 @@ function fbDraw(cell){const{ctx,S,ch}=cell;
   for(const st of cell.strokes){if(st.length<2)continue;
     ctx.beginPath();ctx.moveTo(st[0].x,st[0].y);
     for(let i=1;i<st.length;i++)ctx.lineTo(st[i].x,st[i].y);ctx.stroke();}}
+/* когда шрифты докачались — перерисовать контуры диктанта */
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>{try{if(D&&D.fbc)D.fbc.forEach(fbDraw);}catch(e){}});
 function fbClear(){if(D.fbc)D.fbc.forEach(c=>{c.strokes=[];fbDraw(c)});
   document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});}
 function fbCountInk(cv){const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
@@ -945,7 +971,7 @@ function toggleKnown(i,btn){
 $('#wordsOverlay').addEventListener('click',e=>{if(e.target.id==='wordsOverlay')closeWords()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeWords()});
 
-showMenu();
+try{showMenu();}catch(e){app.innerHTML='<div class="panel" style="text-align:center">Ошибка запуска: '+e.message+'</div>';}
 </script>
 </body>
 </html>
