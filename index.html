@@ -6,7 +6,7 @@
 <title>Словарный диктант · 汉语听写</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;790;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
@@ -481,7 +481,7 @@ const isFav=h=>db.fav.includes(h);
 function starWord(h,btn){
   const i=db.fav.indexOf(h);
   if(i>=0){db.fav.splice(i,1);toast('Убрано из избранного');}
-  else{db.fav.push(h);toast('★ В избранное — повторим в «На слух ★»');}
+  else{db.fav.push(h);toast('★ В избранное — повторим в режимах ★');}
   save();
   if(btn){btn.textContent=isFav(h)?'★ в избранном':'☆ в избранное';
     btn.classList.toggle('star-on',isFav(h));}}
@@ -586,7 +586,8 @@ function showMenu(){
       ['三','Вставь слово','Выбери нужный иероглиф в предложение.','showCloze()'],
       ['四','На слух','Слушаешь слово и узнаёшь его среди четырёх.','showListen()'],
       ['五','Прописи 田字格','Свободное письмо в клетках — мышью или пальцем.','showWrite()'],
-      ['★','Избранное на слух ★','Слова, отмеченные ☆, — отработать ещё раз. Сейчас: '+db.fav.length,'showFav()'],
+      ['★','Избранное на слух ★','Отмеченные ☆ слова — распознать на слух. Сейчас: '+db.fav.length,'showFav()'],
+      ['✍','Избранное письмом ✍️','Слышишь слово из избранного — пишешь его от руки. Сейчас: '+db.fav.length,'showFavDict()'],
     ].map(([n,t,d,fn])=>`
     <button class="lesson" onclick="sndClick();${fn}">
       <div class="l-num">${n}</div>
@@ -672,7 +673,7 @@ function mRoundDone(){
       <h3 style="margin-top:14px">Раунд пройден!</h3><p class="sub">Ошибок пока: ${M.errors}</p>
       <button class="btn primary" onclick="M.r++;renderMatchFrame()">Раунд ${M.r+2} →</button></div>`;}}
 
-/* ================== ДИКТАНТ ================== */
+/* ================== ДИКТАНТ (обычный, по ошибкам, по избранному) ================== */
 let D={};
 let HW_OK=null, HW_LOAD=null, ENS=null, hwMsgShown=false;
 const loadedChars=new Set();
@@ -712,11 +713,20 @@ function ensureHW(){
   })();
   return ENS;}
 function showDict(onlyErrors){
-  stopSay();
   const q=onlyErrors&&D.errors&&D.errors.size?shuffle([...D.errors]):shuffle([...WORDS.keys()]);
-  D={q,i:0,right:0,streak:0,best:0,errors:new Set(),mode:'pinyin',
+  startDict(q,false);}
+function showFavDict(){
+  const pool=[...WORDS.keys()].filter(i=>isFav(WORDS[i].h));
+  if(!pool.length){toast('В этом юните нет избранных слов — отметь их ☆');return;}
+  startDict(shuffle(pool),true);}
+function dictRetryErrors(){
+  if(D.errors&&D.errors.size)startDict(shuffle([...D.errors]),D.fav);}
+function startDict(q,fav){
+  stopSay();
+  D={q,i:0,right:0,streak:0,best:0,errors:new Set(),
+     mode:TTS_OK?'audio':'pinyin',   /* по умолчанию — слушаем и пишем */
      outline:db.outline===true,
-     answered:false,counted:false};
+     answered:false,counted:false,fav:!!fav};
   renderDictFrame();renderDictQ();
   if(HW_OK!==true){
     ensureHW().then(ok=>{
@@ -729,14 +739,14 @@ function dictMode(m){D.mode=m;if(D.mode==='audio'&&!TTS_OK){toast('Озвучк�
 function renderDictFrame(){
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
-    <h2><i>二</i>Диктант ✍️</h2><div class="spacer"></div>
+    <h2><i>${D.fav?'★':'二'}</i>${D.fav?'Диктант избранного ★':'Диктант ✍️'}</h2><div class="spacer"></div>
     <div class="radios">
       <label class="${D.mode==='pinyin'?'on':''}" onclick="dictMode('pinyin')">пиньинь</label>
       <label class="${D.mode==='audio'?'on':''}" onclick="dictMode('audio')">🔊 звук</label>
       <label class="${D.mode==='ru'?'on':''}" onclick="dictMode('ru')">перевод</label>
     </div></div>
   <div class="hud">
-    <span class="pill"><b>${UNIT.name}</b></span>
+    <span class="pill"><b>${D.fav?'★ избранное':UNIT.name}</b></span>
     <span class="pill">Слово <b id="dCur">${D.i+1}</b>/${D.q.length}</span>
     <span class="pill">Верно: <b id="dRight">${D.right}</b></span>
     <span class="pill">Серия: <b id="dStreak">${D.streak}</b> 🔥</span>
@@ -890,9 +900,9 @@ function dictFinish(){
     <p class="sub">Точность ${pct}% · лучшая серия ${D.best}</p>
     ${errs.length?`<p style="font-weight:700;margin-bottom:8px">Слова с ошибками — повтори их:</p>
       <div class="err-chips">${errs.map(w=>`<span class="chip" onclick="say('${w.h}')" title="${w.p}">${w.h}</span>`).join('')}</div>
-      <div style="margin-top:18px"><button class="btn gold" onclick="showDict(true)">🔁 Повторить ошибки (${errs.length})</button></div>`:''}
+      <div style="margin-top:18px"><button class="btn gold" onclick="dictRetryErrors()">🔁 Повторить ошибки (${errs.length})</button></div>`:''}
     <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
-      <button class="btn primary" onclick="showDict()">Заново</button>
+      <button class="btn primary" onclick="${D.fav?'showFavDict()':'showDict()'}">Заново</button>
       <button class="btn" onclick="showMenu()">В меню</button></div></div>`;}
 
 /* ---- запасная проверка по контуру (с нормализацией размера и центра) ---- */
@@ -953,7 +963,6 @@ function fbGrade(cell){
     for(let i=1;i<st.length;i++)uc.lineTo(st[i].x,st[i].y);uc.stroke();}
   const ub=fbBBox(u);if(!ub)return false;
   if(fbCountInk(u)<DS*DS*0.003)return false;
-  /* приводим рисунок к размеру и центру образца (без искажения пропорций) */
   const tw=tb.maxX-tb.minX+1,th=tb.maxY-tb.minY+1,uw=ub.maxX-ub.minX+1,uh=ub.maxY-ub.minY+1;
   let sc=Math.min(tw/uw,th/uh);sc=Math.max(0.75,Math.min(1.6,sc));
   const dw=uw*sc,dh=uh*sc,cx=tb.minX+tw/2,cy=tb.minY+th/2;
@@ -1032,7 +1041,7 @@ function clozeFinish(){
     <button class="btn primary" onclick="showCloze()">Ещё раз</button>
     <button class="btn" onclick="showMenu()">В меню</button></div>`;}
 
-/* ================== НА СЛУХ (+ ИЗБРАННОЕ) ================== */
+/* ================== НА СЛУХ (+ ИЗБРАННОЕ НА СЛУХ) ================== */
 let L={};
 function showListen(){stopSay();startListen(WORDS,false);}
 function showFav(){
