@@ -6,7 +6,7 @@
 <title>Словарный диктант · 汉语听写</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;790;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
@@ -461,6 +461,7 @@ function derangeAgainst(arr,against){
   while(tries<200&&out.some((v,i)=>v===against[i]));
   return out;}
 const app=$('#app');
+let DSESS=0; const bump=()=>{DSESS++;};
 
 window.addEventListener('error',e=>{
   let d=document.getElementById('jserr');
@@ -468,8 +469,8 @@ window.addEventListener('error',e=>{
   d.textContent='⚠ Ошибка на странице: '+e.message+' — пришлите скриншот';
 });
 
-const LS='hz_dict_v3';
-let db={known:{},fav:[],outline:false,modes:{match:{played:0,best:null},dict:{played:0,best:0},cloze:{played:0,best:null},listen:{played:0,best:null}},acc:{ok:0,all:0},exam:'2026-08-26'};
+const LS='hz_dict_v4';
+let db={known:{},fav:[],outline:false,hw:false,modes:{match:{played:0,best:null},dict:{played:0,best:0},cloze:{played:0,best:null},listen:{played:0,best:null}},acc:{ok:0,all:0},exam:'2026-08-26'};
 try{const raw=localStorage.getItem(LS); if(raw)db=Object.assign(db,JSON.parse(raw));
   if(Array.isArray(db.known))db.known={'17':db.known};
   if(!Array.isArray(db.fav))db.fav=[];}catch(e){}
@@ -543,7 +544,7 @@ function editExam(){const v=prompt('Дата диктанта (ГГГГ-ММ-Д�
 
 /* ================== ВЫБОР ЮНИТА ================== */
 function showUnits(){
-  stopSay();
+  bump();stopSay();
   app.innerHTML=`
   <h2 class="menu-title">Какой юнит тренируем? <span>选一个吧</span></h2>
   <div class="lessons">
@@ -564,7 +565,7 @@ function showUnits(){
 
 /* ================== МЕНЮ УПРАЖНЕНИЙ ================== */
 function showMenu(){
-  stopSay();
+  bump();stopSay();
   const m=db.modes;
   const rec={
     match:m.match.played?`сыграно раундов: ${m.match.played}${m.match.best!=null?' · ошибок: '+m.match.best:''}`:'',
@@ -582,7 +583,7 @@ function showMenu(){
   <div class="lessons">
     ${[
       ['一','Соедини пары','Иероглиф ↔ пиньинь и перевод. Раунды по словам юнита.','showMatch()'],
-      ['二','Диктант ✍️','Слышишь или видишь слово — пишешь иероглифы от руки.','showDict()'],
+      ['二','Диктант ✍️','Слышишь слово — пишешь от руки. Проверка: контур или черты (кнопка в диктанте).','showDict()'],
       ['三','Вставь слово','Выбери нужный иероглиф в предложение.','showCloze()'],
       ['四','На слух','Слушаешь слово и узнаёшь его среди четырёх.','showListen()'],
       ['五','Прописи 田字格','Свободное письмо в клетках — мышью или пальцем.','showWrite()'],
@@ -606,7 +607,7 @@ function resetAll(){if(confirm('Точно сбросить весь прогр�
 /* ================== ПАРЫ ================== */
 let M={};
 function showMatch(){
-  stopSay();
+  bump();stopSay();
   const items=shuffle([...WORDS.keys()]);
   const rounds=[];let i=0;
   while(i<items.length){let take=6;const left=items.length-i;
@@ -673,9 +674,11 @@ function mRoundDone(){
       <h3 style="margin-top:14px">Раунд пройден!</h3><p class="sub">Ошибок пока: ${M.errors}</p>
       <button class="btn primary" onclick="M.r++;renderMatchFrame()">Раунд ${M.r+2} →</button></div>`;}}
 
-/* ================== ДИКТАНТ (обычный, по ошибкам, по избранному) ================== */
+/* ================== ДИКТАНТ ================== */
+/* Режим письма стабилен: по умолчанию свободное письмо с проверкой по контуру.
+   Проверка по чертам включается ТОЛЬКО кнопкой «проверка: …» и запоминается. */
 let D={};
-let HW_OK=null, HW_LOAD=null, ENS=null, hwMsgShown=false;
+let HW_OK=false, HW_LOAD=null, ENS=null;
 const loadedChars=new Set();
 function loadHWScript(){
   if(HW_LOAD)return HW_LOAD;
@@ -692,9 +695,9 @@ function ensureHW(){
   if(ENS)return ENS;
   ENS=(async()=>{
     const ok=await loadHWScript();
-    if(!ok||typeof HanziWriter==='undefined'){HW_OK=false;return false;}
+    if(!ok||typeof HanziWriter==='undefined')return false;
     const need=[...new Set(WORDS.map(w=>w.h).join('')).filter(isCJK)].filter(c=>!loadedChars.has(c));
-    if(!need.length){HW_OK=true;return true;}
+    if(!need.length)return true;
     try{
       const div=document.createElement('div');
       div.style.cssText='position:fixed;left:-9999px;top:0;width:20px;height:20px;opacity:0';
@@ -705,13 +708,28 @@ function ensureHW(){
         new Promise((_,rej)=>setTimeout(()=>rej(new Error('timeout')),6000))]);
       document.body.removeChild(div);
       need.forEach(c=>loadedChars.add(c));
-      HW_OK=true;
-    }catch(e){HW_OK=false;}
-    if(!HW_OK&&!hwMsgShown){hwMsgShown=true;
-      toast('Данные черт не загрузились — работаем с проверкой по контуру');}
-    return HW_OK;
+      return true;
+    }catch(e){return false;}
   })();
   return ENS;}
+function dictCheckMode(){
+  const w=WORDS[D.q[D.i]];
+  if(HW_OK){
+    HW_OK=false;ENS=null;db.hw=false;save();refreshHwBtn();
+    if(!D.answered)startCells(charsOf(w));
+    toast('Режим письма: контур (свободное письмо)');
+  }else{
+    toast('Подключаю проверку по чертам…');
+    ENS=null;
+    const my=DSESS;
+    ensureHW().then(ok=>{
+      if(my!==DSESS)return;
+      HW_OK=ok;db.hw=ok;save();refreshHwBtn();
+      toast(ok?'Проверка по чертам включена':'Не удалось подключить — остаёмся на контуре');
+      if(ok&&!D.answered)startCells(charsOf(w));
+    });
+  }}
+function refreshHwBtn(){const b=$('#hwBtn');if(b)b.textContent=HW_OK?'проверка: черты':'проверка: контур';}
 function showDict(onlyErrors){
   const q=onlyErrors&&D.errors&&D.errors.size?shuffle([...D.errors]):shuffle([...WORDS.keys()]);
   startDict(q,false);}
@@ -722,19 +740,18 @@ function showFavDict(){
 function dictRetryErrors(){
   if(D.errors&&D.errors.size)startDict(shuffle([...D.errors]),D.fav);}
 function startDict(q,fav){
-  stopSay();
+  bump();stopSay();
   D={q,i:0,right:0,streak:0,best:0,errors:new Set(),
-     mode:TTS_OK?'audio':'pinyin',   /* по умолчанию — слушаем и пишем */
+     mode:TTS_OK?'audio':'pinyin',
      outline:db.outline===true,
      answered:false,counted:false,fav:!!fav};
-  renderDictFrame();renderDictQ();
-  if(HW_OK!==true){
-    ensureHW().then(ok=>{
-      if(ok&&!D.answered&&D.q&&D.i<D.q.length){
-        const lv=$('#dLive');if(lv)lv.innerHTML='пиши в клетках от руки — проверяются форма и порядок черт ✍️';
-        startCells(charsOf(WORDS[D.q[D.i]]));
-      }});
-  }}
+  const my=DSESS;
+  const boot=(db.hw===true)?ensureHW():Promise.resolve(false);
+  boot.then(ok=>{
+    if(my!==DSESS)return;      /* пользователь уже ушёл — не трогаем экран */
+    if(ok)HW_OK=true;
+    renderDictFrame();renderDictQ();
+  });}
 function dictMode(m){D.mode=m;if(D.mode==='audio'&&!TTS_OK){toast('Озвучка недоступна — включаю пиньинь');D.mode='pinyin'}renderDictFrame();renderDictQ();}
 function renderDictFrame(){
   app.innerHTML=`
@@ -776,6 +793,7 @@ function renderDictQ(){
   <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <button class="btn" onclick="dictRetry()">🔁 заново</button>
     <button class="btn" onclick="dictReveal()">Показать ответ</button>
+    <button class="btn" id="hwBtn" onclick="dictCheckMode()">${HW_OK?'проверка: черты':'проверка: контур'}</button>
     <button class="btn" id="dOutBtn" onclick="dictOutline()">обводка: ${D.outline?'вкл':'выкл'}</button>
     <span id="fbBtns" style="display:${HW_OK?'none':'contents'}">
       <button class="btn" onclick="fbClear()">🧹 очистить</button>
@@ -795,29 +813,35 @@ function startCells(chars){
   document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});
   const fb=$('#fbBtns');
   const S=cellSize(chars.length)-4;
-  if(HW_OK===true){
-    if(fb)fb.style.display='none';
-    D.fbc=null;
-    D.writers=chars.map((ch,i)=>{
-      const el=$('#hw'+i);el.innerHTML='';
-      return HanziWriter.create(el,ch,{
-        width:S,height:S,padding:5,
-        showCharacter:false,showOutline:D.outline,
-        strokeColor:'#262019',outlineColor:'#E7DFC9',
-        drawingColor:'#C63A21',highlightColor:'#E3A62E',
-        strokeAnimationSpeed:1.2,delayBetweenStrokes:120,
-        leniency:1,renderer:'canvas'});});
-    D.remaining=chars.length;D.totalMistakes=0;D.wordMistakes=0;
-    D.writers.forEach((wr,i)=>{
-      wr.quiz({
-        onMistake:()=>{D.wordMistakes++;
-          const lv=$('#dLive');if(lv)lv.innerHTML=`ошибки в чертах: <b style="color:var(--red)">${D.wordMistakes}</b> (порядок черт учитывается!)`;},
-        onComplete:s=>{D.totalMistakes+=s.totalMistakes;D.remaining--;
-          const mk=$('#mk'+i);if(mk)mk.textContent='✓';
-          if(D.remaining===0)setTimeout(hwVerdict,350);}});});
-  }else{
+  let useHW=HW_OK===true;
+  if(useHW){
+    try{
+      D.writers=chars.map((ch,i)=>{
+        const el=$('#hw'+i);el.innerHTML='';
+        return HanziWriter.create(el,ch,{
+          width:S,height:S,padding:5,
+          showCharacter:false,showOutline:D.outline,
+          strokeColor:'#262019',outlineColor:'#E7DFC9',
+          drawingColor:'#C63A21',highlightColor:'#E3A62E',
+          strokeAnimationSpeed:1.2,delayBetweenStrokes:120,
+          leniency:1,renderer:'canvas'});});
+      D.remaining=chars.length;D.totalMistakes=0;D.wordMistakes=0;
+      D.writers.forEach((wr,i)=>{
+        wr.quiz({
+          onMistake:()=>{D.wordMistakes++;
+            const lv=$('#dLive');if(lv)lv.innerHTML=`ошибки в чертах: <b style="color:var(--red)">${D.wordMistakes}</b> (порядок черт учитывается!)`;},
+          onComplete:s=>{D.totalMistakes+=s.totalMistakes;D.remaining--;
+            const mk=$('#mk'+i);if(mk)mk.textContent='✓';
+            if(D.remaining===0)setTimeout(hwVerdict,350);}});});
+      if(fb)fb.style.display='none';
+      D.fbc=null;
+    }catch(e){useHW=false;cleanupWriters();}
+  }
+  if(!useHW){
     if(fb)fb.style.display='contents';
-    D.fbc=chars.map((ch,i)=>fbInit($('#hw'+i),ch,S));}}
+    D.fbc=chars.map((ch,i)=>fbInit($('#hw'+i),ch,S));
+    const lv=$('#dLive');if(lv&&!D.answered)lv.innerHTML='нарисуй иероглифы и нажми «Проверить»';
+  }}
 function hwVerdict(){
   if(D.answered)return;D.answered=true;
   if(D.totalMistakes===0)dictSuccess();else dictFail(D.totalMistakes);}
@@ -852,7 +876,6 @@ function dictRetry(){
   const w=WORDS[D.q[D.i]];
   D.answered=false;
   $('#dFb').innerHTML='';
-  const lv=$('#dLive');if(lv)lv.innerHTML=HW_OK?'попробуй ещё раз — пиши внимательно ✍️':'нарисуй и нажми «Проверить»';
   startCells(charsOf(w));}
 function dictReveal(){
   if(D.answered&&D.counted)return;
@@ -992,7 +1015,7 @@ function fbCheck(){
 /* ================== ПОДСТАНОВКА ================== */
 let C={};
 function showCloze(){
-  stopSay();
+  bump();stopSay();
   C={q:shuffle(SENTENCES.map((s,i)=>i)),i:0,ok:0,solved:false,firstTry:true};
   renderClozeFrame();renderClozeQ();}
 function renderClozeFrame(){
@@ -1043,9 +1066,9 @@ function clozeFinish(){
 
 /* ================== НА СЛУХ (+ ИЗБРАННОЕ НА СЛУХ) ================== */
 let L={};
-function showListen(){stopSay();startListen(WORDS,false);}
+function showListen(){bump();stopSay();startListen(WORDS,false);}
 function showFav(){
-  stopSay();
+  bump();stopSay();
   const pool=WORDS.filter(w=>isFav(w.h));
   if(!pool.length){toast('В этом юните нет избранных слов — отметь их кнопкой ☆');return;}
   startListen(pool,true);}
@@ -1101,7 +1124,7 @@ function listenNext(){
 /* ================== ПРОПИСИ ================== */
 let W={i:0,ghost:true,pads:[]};
 function showWrite(){
-  stopSay();
+  bump();stopSay();
   W.i=Math.floor(Math.random()*WORDS.length);W.ghost=true;
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
