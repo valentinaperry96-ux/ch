@@ -6,7 +6,7 @@
 <title>Словарный диктант · 汉语听写</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;790;900&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <noscript><link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=Rubik:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500&family=Noto+Sans+SC:wght@400;500;700;900&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
@@ -101,6 +101,7 @@ body{
 .btn.gold{background:var(--gold)}
 .btn.small{padding:7px 13px; font-size:12.5px; box-shadow:2px 2px 0 rgba(38,32,25,.9)}
 .btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+.btn.star-on{background:var(--gold); color:var(--ink)}
 
 .topbar{display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap}
 .topbar h2{font-family:var(--disp); font-weight:400; font-size:clamp(24px,3.4vw,34px)}
@@ -212,7 +213,7 @@ body{
 .modal-head h3{font-family:var(--disp); font-weight:400; font-size:22px; flex:1}
 .modal-head button{background:none; border:2px solid #FFF6E6; color:#FFF6E6; border-radius:8px;
   padding:4px 12px; cursor:pointer; font-weight:800}
-.wrow{display:flex; align-items:center; gap:14px; padding:9px 20px; border-bottom:1px dashed var(--line)}
+.wrow{display:flex; align-items:center; gap:12px; padding:9px 20px; border-bottom:1px dashed var(--line)}
 .wrow:hover{background:#FFF9EC}
 .wrow .hz{font-family:var(--cjk); font-weight:700; font-size:26px; width:96px; flex:none; letter-spacing:2px}
 .wrow .hz.long{font-size:16px; width:150px; letter-spacing:1px}
@@ -221,6 +222,9 @@ body{
 .wrow .know{border:2px solid var(--ink); background:#fff; border-radius:999px; font-size:11.5px;
   font-weight:800; padding:4px 10px; cursor:pointer; flex:none}
 .wrow .know.on{background:var(--jade); border-color:var(--jade); color:#fff}
+.wrow .st{border:2px solid var(--ink); background:#fff; border-radius:999px; font-size:13px;
+  font-weight:800; padding:3px 9px; cursor:pointer; flex:none}
+.wrow .st.on{background:var(--gold); border-color:var(--gold); color:var(--ink)}
 .mini-say{background:none; border:none; font-size:17px; cursor:pointer; opacity:.6}
 .mini-say:hover{opacity:1; transform:scale(1.15)}
 
@@ -464,12 +468,24 @@ window.addEventListener('error',e=>{
   d.textContent='⚠ Ошибка на странице: '+e.message+' — пришлите скриншот';
 });
 
-const LS='hz_dict_v2';
-let db={known:{},outline:false,modes:{match:{played:0,best:null},dict:{played:0,best:0},cloze:{played:0,best:null},listen:{played:0,best:null}},acc:{ok:0,all:0},exam:'2026-08-26'};
+const LS='hz_dict_v3';
+let db={known:{},fav:[],outline:false,modes:{match:{played:0,best:null},dict:{played:0,best:0},cloze:{played:0,best:null},listen:{played:0,best:null}},acc:{ok:0,all:0},exam:'2026-08-26'};
 try{const raw=localStorage.getItem(LS); if(raw)db=Object.assign(db,JSON.parse(raw));
-  if(Array.isArray(db.known))db.known={'17':db.known};}catch(e){}
+  if(Array.isArray(db.known))db.known={'17':db.known};
+  if(!Array.isArray(db.fav))db.fav=[];}catch(e){}
 const save=()=>{try{localStorage.setItem(LS,JSON.stringify(db))}catch(e){}};
 const record=(ok)=>{db.acc.all++; if(ok)db.acc.ok++; save(); renderHeader()};
+
+/* ---------- избранное ---------- */
+const isFav=h=>db.fav.includes(h);
+function starWord(h,btn){
+  const i=db.fav.indexOf(h);
+  if(i>=0){db.fav.splice(i,1);toast('Убрано из избранного');}
+  else{db.fav.push(h);toast('★ В избранное — повторим в «На слух ★»');}
+  save();
+  if(btn){btn.textContent=isFav(h)?'★ в избранном':'☆ в избранное';
+    btn.classList.toggle('star-on',isFav(h));}}
+const starBtn=h=>`<button class="btn small ${isFav(h)?'star-on':''}" onclick="starWord('${h}',this)">${isFav(h)?'★ в избранном':'☆ в избранное'}</button>`;
 
 let AC=null;
 function tone(f,d,type='sine',g=.12,t=0){try{
@@ -556,7 +572,7 @@ function showMenu(){
     cloze:m.cloze.best!=null?`лучший результат: ${m.cloze.best}`:'',
     listen:m.listen.best!=null?`лучший результат: ${m.listen.best}`:'',
     write:''};
-  const key=t=>t==='Соедини пары'?'match':t==='Диктант ✍️'?'dict':t.startsWith('Вставь')?'cloze':t.startsWith('На')?'listen':'write';
+  const key=t=>t==='Соедини пары'?'match':t==='Диктант ✍️'?'dict':t.startsWith('Вставь')?'cloze':t.startsWith('На слух')?'listen':'write';
   app.innerHTML=`
   <div class="hud">
     <span class="pill"><b>${UNIT.name}</b> · ${WORDS.length} слов</span>
@@ -570,6 +586,7 @@ function showMenu(){
       ['三','Вставь слово','Выбери нужный иероглиф в предложение.','showCloze()'],
       ['四','На слух','Слушаешь слово и узнаёшь его среди четырёх.','showListen()'],
       ['五','Прописи 田字格','Свободное письмо в клетках — мышью или пальцем.','showWrite()'],
+      ['★','Избранное на слух ★','Слова, отмеченные ☆, — отработать ещё раз. Сейчас: '+db.fav.length,'showFav()'],
     ].map(([n,t,d,fn])=>`
     <button class="lesson" onclick="sndClick();${fn}">
       <div class="l-num">${n}</div>
@@ -656,9 +673,6 @@ function mRoundDone(){
       <button class="btn primary" onclick="M.r++;renderMatchFrame()">Раунд ${M.r+2} →</button></div>`;}}
 
 /* ================== ДИКТАНТ ================== */
-/* Диктант открывается СРАЗУ: сначала клетки с проверкой по контуру,
-   а проверка по чертам (HanziWriter) подключается в фоне, как только
-   загрузятся данные. Экран больше не может «зависнуть» на загрузке. */
 let D={};
 let HW_OK=null, HW_LOAD=null, ENS=null, hwMsgShown=false;
 const loadedChars=new Set();
@@ -703,11 +717,11 @@ function showDict(onlyErrors){
   D={q,i:0,right:0,streak:0,best:0,errors:new Set(),mode:'pinyin',
      outline:db.outline===true,
      answered:false,counted:false};
-  renderDictFrame();renderDictQ();          /* клетки появляются сразу */
-  if(HW_OK!==true){                          /* проверка по чертам догоняет в фоне */
+  renderDictFrame();renderDictQ();
+  if(HW_OK!==true){
     ensureHW().then(ok=>{
       if(ok&&!D.answered&&D.q&&D.i<D.q.length){
-        const lv=$('#dLive');if(lv)lv.innerHTML='пиши в клетках от руки — каждая черта проверяется ✍️';
+        const lv=$('#dLive');if(lv)lv.innerHTML='пиши в клетках от руки — проверяются форма и порядок черт ✍️';
         startCells(charsOf(WORDS[D.q[D.i]]));
       }});
   }}
@@ -747,7 +761,7 @@ function renderDictQ(){
     ${chars.map((c,i)=>`<div class="tzg dcell" style="width:${cs}px;height:${cs}px"><div class="hw" id="hw${i}"></div><div class="mark" id="mk${i}"></div></div>`).join('')}
   </div>
   <div class="dict-ru" id="dLive" style="text-align:center;min-height:22px">
-    ${HW_OK?'пиши в клетках от руки — каждая черта проверяется ✍️':'нарисуй иероглифы и нажми «Проверить»'}
+    ${HW_OK?'пиши в клетках от руки — проверяются форма и порядок черт ✍️':'нарисуй иероглифы и нажми «Проверить»'}
   </div>
   <div style="margin-top:12px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
     <button class="btn" onclick="dictRetry()">🔁 заново</button>
@@ -782,12 +796,12 @@ function startCells(chars){
         strokeColor:'#262019',outlineColor:'#E7DFC9',
         drawingColor:'#C63A21',highlightColor:'#E3A62E',
         strokeAnimationSpeed:1.2,delayBetweenStrokes:120,
-        leniency:1.2,renderer:'canvas'});});
+        leniency:1,renderer:'canvas'});});
     D.remaining=chars.length;D.totalMistakes=0;D.wordMistakes=0;
     D.writers.forEach((wr,i)=>{
       wr.quiz({
         onMistake:()=>{D.wordMistakes++;
-          const lv=$('#dLive');if(lv)lv.innerHTML=`ошибки в чертах: <b style="color:var(--red)">${D.wordMistakes}</b>`;},
+          const lv=$('#dLive');if(lv)lv.innerHTML=`ошибки в чертах: <b style="color:var(--red)">${D.wordMistakes}</b> (порядок черт учитывается!)`;},
         onComplete:s=>{D.totalMistakes+=s.totalMistakes;D.remaining--;
           const mk=$('#mk'+i);if(mk)mk.textContent='✓';
           if(D.remaining===0)setTimeout(hwVerdict,350);}});});
@@ -807,8 +821,10 @@ function dictSuccess(){
   $('#dFb').innerHTML=`<div class="stamp good">对</div>
     <div><div style="font-family:var(--cjk);font-weight:700;font-size:22px">${w.h} · ${w.p}</div>
     <div class="dict-ru">${w.r}</div>
-    <div style="margin-top:10px"><button class="btn small" onclick="say('${w.h}')">🔊</button>
-    <button class="btn primary small" onclick="dictNext()">Дальше →</button></div></div>`;}
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn small" onclick="say('${w.h}')">🔊</button>
+      ${starBtn(w.h)}
+      <button class="btn primary small" onclick="dictNext()">Дальше →</button></div></div>`;}
 function dictFail(n){
   const w=WORDS[D.q[D.i]];
   if(!D.counted){D.counted=true;record(false);D.errors.add(D.q[D.i]);D.streak=0;}
@@ -820,6 +836,7 @@ function dictFail(n){
     <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
       <button class="btn gold small" onclick="dictRetry()">🔁 Написать ещё раз</button>
       <button class="btn small" onclick="dictShowAnim()">👀 как правильно</button>
+      ${starBtn(w.h)}
       <button class="btn primary small" onclick="dictNext()">Дальше →</button></div></div>`;}
 function dictRetry(){
   const w=WORDS[D.q[D.i]];
@@ -840,8 +857,10 @@ function dictReveal(){
   $('#dFb').innerHTML=`<div class="stamp good" style="color:var(--gold)">记</div>
     <div><div style="font-family:var(--cjk);font-weight:700;font-size:22px">${w.h} · ${w.p}</div>
     <div class="dict-ru">${w.r} — запомни и потренируй в «Прописях»</div>
-    <div style="margin-top:10px"><button class="btn small" onclick="say('${w.h}')">🔊</button>
-    <button class="btn primary small" onclick="dictNext()">Запомнила →</button></div></div>`;}
+    <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn small" onclick="say('${w.h}')">🔊</button>
+      ${starBtn(w.h)}
+      <button class="btn primary small" onclick="dictNext()">Запомнила →</button></div></div>`;}
 function dictShowAnim(){
   if(!HW_OK||!D.writers)return;
   D.writers.forEach(wr=>{try{wr.cancelQuiz()}catch(e){};wr.animateCharacter()});
@@ -876,7 +895,7 @@ function dictFinish(){
       <button class="btn primary" onclick="showDict()">Заново</button>
       <button class="btn" onclick="showMenu()">В меню</button></div></div>`;}
 
-/* ---- запасная проверка по контуру ---- */
+/* ---- запасная проверка по контуру (с нормализацией размера и центра) ---- */
 function fbInit(el,ch,S){
   S=S||148;
   el.innerHTML='';
@@ -913,30 +932,46 @@ function fbClear(){if(!D.fbc||D.writers)return;
   document.querySelectorAll('#dPanel .mark').forEach(m=>{m.textContent='';m.style.color=''});}
 function fbCountInk(cv){const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
   let n=0;for(let i=3;i<d.length;i+=4)if(d[i]>90)n++;return n;}
+function fbBBox(cv){const d=cv.getContext('2d').getImageData(0,0,cv.width,cv.height).data;
+  const w=cv.width,h=cv.height;
+  let minX=1e9,minY=1e9,maxX=-1,maxY=-1;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){
+    if(d[(y*w+x)*4+3]>90){if(x<minX)minX=x;if(x>maxX)maxX=x;if(y<minY)minY=y;if(y>maxY)maxY=y;}}
+  return maxX<0?null:{minX,minY,maxX,maxY};}
 function fbGrade(cell){
-  const S=cell.S;
-  const mk=()=>{const c=document.createElement('canvas');c.width=c.height=S;return c;};
-  const t=mk(),tc=t.getContext('2d');
-  tc.font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
-  tc.textAlign='center';tc.textBaseline='middle';tc.fillStyle='#000';
+  const S=cell.S,dpr=window.devicePixelRatio||1,DS=cell.cv.width;
+  const mk=()=>{const c=document.createElement('canvas');c.width=c.height=DS;return c;};
+  const font=`700 ${S*0.68}px 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif`;
+  const t=mk(),tc=t.getContext('2d');tc.setTransform(dpr,0,0,dpr,0,0);
+  tc.font=font;tc.textAlign='center';tc.textBaseline='middle';tc.fillStyle='#000';
   tc.fillText(cell.ch,S/2,S/2+S*0.03);
-  const total=fbCountInk(t);
-  const c1=mk(),x1=c1.getContext('2d');
-  x1.drawImage(t,0,0);x1.globalCompositeOperation='destination-out';
-  x1.lineWidth=Math.max(10,S*0.11);x1.lineCap='round';x1.lineJoin='round';x1.strokeStyle='#000';
+  const tb=fbBBox(t);if(!tb)return false;
+  const u=mk(),uc=u.getContext('2d');uc.setTransform(dpr,0,0,dpr,0,0);
+  uc.strokeStyle='#000';uc.lineWidth=Math.max(3.5,S*0.035);uc.lineCap='round';uc.lineJoin='round';
   for(const st of cell.strokes){if(st.length<2)continue;
-    x1.beginPath();x1.moveTo(st[0].x,st[0].y);
-    for(let i=1;i<st.length;i++)x1.lineTo(st[i].x,st[i].y);x1.stroke();}
+    uc.beginPath();uc.moveTo(st[0].x,st[0].y);
+    for(let i=1;i<st.length;i++)uc.lineTo(st[i].x,st[i].y);uc.stroke();}
+  const ub=fbBBox(u);if(!ub)return false;
+  if(fbCountInk(u)<DS*DS*0.003)return false;
+  /* приводим рисунок к размеру и центру образца (без искажения пропорций) */
+  const tw=tb.maxX-tb.minX+1,th=tb.maxY-tb.minY+1,uw=ub.maxX-ub.minX+1,uh=ub.maxY-ub.minY+1;
+  let sc=Math.min(tw/uw,th/uh);sc=Math.max(0.75,Math.min(1.6,sc));
+  const dw=uw*sc,dh=uh*sc,cx=tb.minX+tw/2,cy=tb.minY+th/2;
+  const n=mk(),nc=n.getContext('2d');
+  nc.drawImage(u,ub.minX,ub.minY,uw,uh,cx-dw/2,cy-dh/2,dw,dh);
+  const off=Math.max(2,Math.round(DS*0.025));
+  const offs=[[0,0],[off,0],[-off,0],[0,off],[0,-off],[off,off],[-off,-off],[off,-off],[-off,off]];
+  const total=fbCountInk(t);
+  const c1=mk(),x1=c1.getContext('2d');x1.drawImage(t,0,0);
+  x1.globalCompositeOperation='destination-out';
+  offs.forEach(([dx,dy])=>x1.drawImage(n,dx,dy));
   const coverage=total?1-fbCountInk(c1)/total:0;
-  const c2=mk(),x2=c2.getContext('2d');
-  x2.drawImage(cell.cv,0,0,cell.cv.width,cell.cv.height,0,0,S,S);
-  x2.globalCompositeOperation='destination-out';x2.fillStyle='#000';
-  x2.font=tc.font;x2.textAlign='center';x2.textBaseline='middle';
-  const off=Math.round(S*0.04);
-  [[0,0],[off,0],[-off,0],[0,off],[0,-off],[off,off],[-off,-off],[off,-off],[-off,off]]
-    .forEach(([dx,dy])=>x2.fillText(cell.ch,S/2+dx,S/2+S*0.03+dy));
-  const uT=fbCountInk(cell.cv),precision=uT?1-fbCountInk(c2)/uT:0;
-  return coverage>=0.6&&precision>=0.5&&uT>60;}
+  const nInk=fbCountInk(n);
+  const c2=mk(),x2=c2.getContext('2d');x2.drawImage(n,0,0);
+  x2.globalCompositeOperation='destination-out';
+  offs.forEach(([dx,dy])=>x2.drawImage(t,dx,dy));
+  const precision=nInk?1-fbCountInk(c2)/nInk:0;
+  return coverage>=0.68&&precision>=0.6;}
 function fbCheck(){
   if(D.answered||D.writers||!D.fbc)return;
   let fails=0;
@@ -997,22 +1032,27 @@ function clozeFinish(){
     <button class="btn primary" onclick="showCloze()">Ещё раз</button>
     <button class="btn" onclick="showMenu()">В меню</button></div>`;}
 
-/* ================== НА СЛУХ ================== */
+/* ================== НА СЛУХ (+ ИЗБРАННОЕ) ================== */
 let L={};
-function showListen(){
+function showListen(){stopSay();startListen(WORDS,false);}
+function showFav(){
   stopSay();
-  L={q:shuffle([...WORDS.keys()]),i:0,ok:0,firstTry:true};
+  const pool=WORDS.filter(w=>isFav(w.h));
+  if(!pool.length){toast('В этом юните нет избранных слов — отметь их кнопкой ☆');return;}
+  startListen(pool,true);}
+function startListen(pool,fav){
+  L={pool,fav,q:shuffle([...pool.keys()]),i:0,ok:0,firstTry:true};
   app.innerHTML=`
   <div class="topbar"><button class="btn small" onclick="showMenu()">← Меню</button>
-    <h2><i>四</i>На слух</h2><div class="spacer"></div></div>
+    <h2><i>${fav?'★':'四'}</i>${fav?'Избранное на слух':'На слух'}</h2><div class="spacer"></div></div>
   <div class="hud"><span class="pill"><b>${UNIT.name}</b></span>
-    <span class="pill">Слово <b id="lCur">1</b>/${WORDS.length}</span>
+    <span class="pill">Слово <b id="lCur">1</b>/${L.q.length}</span>
     <span class="pill">Узнано: <b id="lOk">0</b></span></div>
   <div class="panel" id="lPanel"></div>`;
   renderListenQ();}
 function renderListenQ(){
-  const w=WORDS[L.q[L.i]];L.firstTry=true;
-  const opts=shuffle([w.h,...shuffle(WORDS.filter(x=>x.h!==w.h)).slice(0,3).map(x=>x.h)]);
+  const w=L.pool[L.q[L.i]];L.firstTry=true;
+  const opts=shuffle([w.h,...shuffle(L.pool.filter(x=>x.h!==w.h)).slice(0,3).map(x=>x.h)]);
   $('#lPanel').innerHTML=`
     <div class="dict-prompt">
       ${!TTS_OK?`<div class="dict-pinyin">${w.p}</div><div class="dict-ru">озвучка недоступна — читаем пиньинь</div>`
@@ -1022,28 +1062,30 @@ function renderListenQ(){
     <div class="listen-tiles">${opts.map(o=>`<button class="opt${longCls(o)}" onclick="listenPick(this,'${o}')">${o}</button>`).join('')}</div>
     <div id="lFb"></div>`;
   if(TTS_OK)setTimeout(()=>listenPlay($('#lSay')),400);}
-function listenPlay(btn,rate){const w=WORDS[L.q[L.i]];if(say(w.h,rate||.8)&&btn){btn.classList.add('speaking');setTimeout(()=>btn.classList.remove('speaking'),1200)}}
+function listenPlay(btn,rate){const w=L.pool[L.q[L.i]];if(say(w.h,rate||.8)&&btn){btn.classList.add('speaking');setTimeout(()=>btn.classList.remove('speaking'),1200)}}
 function listenPick(btn,ch){
-  const w=WORDS[L.q[L.i]];
+  const w=L.pool[L.q[L.i]];
   if(btn.classList.contains('right'))return;
   if(ch===w.h){
     btn.classList.add('right');
     if(L.firstTry){L.ok++;record(true);sndOk();confetti(12);}else{record(true);sndOk();}
     $('#lFb').innerHTML=`<div class="transl">${w.p} — ${w.r}</div>
-      <div style="text-align:center;margin-top:14px"><button class="btn primary small" onclick="listenNext()">Дальше →</button></div>`;
+      <div style="text-align:center;margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap">
+        ${starBtn(w.h)}
+        <button class="btn primary small" onclick="listenNext()">Дальше →</button></div>`;
     $('#lOk').textContent=L.ok;
   }else{L.firstTry=false;btn.classList.add('wrong');btn.disabled=true;sndBad();record(false);}}
 function listenNext(){
   L.i++;
-  const tot=WORDS.length;
-  if(L.i>=L.q.length){
-    db.modes.listen.played++;
-    if(db.modes.listen.best==null||L.ok>db.modes.listen.best)db.modes.listen.best=L.ok;save();
+  const tot=L.q.length;
+  if(L.i>=tot){
+    if(!L.fav){db.modes.listen.played++;
+      if(db.modes.listen.best==null||L.ok>db.modes.listen.best)db.modes.listen.best=L.ok;save();}
     if(L.ok>=tot*.8)confetti(60);
     $('#lPanel').innerHTML=`<div class="final"><div class="big">${L.ok}/${tot}</div>
       <h3>${L.ok>=tot*.85?'太好了！':L.ok>=tot*.65?'不错！':'再试一次！'}</h3>
-      <p class="sub">слов узнано на слух с первой попытки</p>
-      <button class="btn primary" onclick="showListen()">Ещё раз</button>
+      <p class="sub">${L.fav?'избранных слов узнано с первой попытки':'слов узнано на слух с первой попытки'}</p>
+      <button class="btn primary" onclick="${L.fav?'showFav()':'showListen()'}">Ещё раз</button>
       <button class="btn" onclick="showMenu()">В меню</button></div>`;return;}
   $('#lCur').textContent=L.i+1;renderListenQ();}
 
@@ -1082,7 +1124,8 @@ function renderPads(){
   const chs=charsOf(w);
   $('#pads').innerHTML=chs.map((ch,i)=>`<div class="pad"><canvas id="cv${i}" width="0" height="0"></canvas><div class="padch">${ch}</div></div>`).join('');
   $('#wInfo').innerHTML=`<div class="w" style="font-size:${w.h.length>4?26:36}px">${w.h}</div><div class="p">${w.p}</div><div class="r">${w.r}</div>
-    <button class="btn small" style="margin-top:8px" onclick="wSay()">🔊</button>`;
+    <div style="margin-top:8px;display:flex;gap:8px;justify-content:center">${starBtn(w.h)}
+    <button class="btn small" onclick="wSay()">🔊</button></div>`;
   W.pads=chs.map((ch,i)=>initPad($('#cv'+i),ch));
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(()=>W.pads.forEach(p=>drawPad(p)));}
 function initPad(cv,ch){
@@ -1124,9 +1167,11 @@ function openWords(){
     <div class="wrow">
       <button class="mini-say" onclick="say('${w.h}')">🔊</button>
       <div class="hz${longCls(w.h)}">${w.h}</div><div class="py">${w.p}</div><div class="ru">${w.r}</div>
+      <button class="st ${isFav(w.h)?'on':''}" onclick="starRow('${w.h}',this)" title="в избранное">★</button>
       <button class="know ${(db.known[UNIT.id]||[]).includes(i)?'on':''}" onclick="toggleKnown(${i},this)">${(db.known[UNIT.id]||[]).includes(i)?'✓ знаю':'знаю'}</button>
     </div>`).join('');
   $('#wordsOverlay').classList.add('open');}
+function starRow(h,btn){starWord(h,null);btn.classList.toggle('on',isFav(h));}
 function closeWords(){$('#wordsOverlay').classList.remove('open')}
 function toggleKnown(i,btn){
   const arr=db.known[UNIT.id]||(db.known[UNIT.id]=[]);
